@@ -25,7 +25,7 @@ following fields:
  - title: the title of the page
  - categories: a list of strings
  - text: the actual text of the page
- 
+
 These files can be compressed in a variety of formats, which Spark
 handles transparently. In particular, the datasets you can download
 are compressed using the bzip2 library. On Windows it's not possible
@@ -45,18 +45,18 @@ To compile the code under Linux\MaxOS, you just have to run the
 following command
 
     ./gradlew compileJava
-    
+
 To run the examples, you need to set up the Java classpath properly,
 including all the dependencies of the project. The following command
 will print a colon separated list of the paths to the dependencies of
 the project
 
     ./gradlew showDepsClasspath
-    
+
 You can store the result in an environment variable as follows
 
     export CP=$(./gradlew showDepsClasspath | grep jar)
-    
+
 which you can then include in your Java invocation as follows
 
     java -Dspark.master=local -cp $CP:build/classes/main it.unipd.dei.dm1617.examples.Sample medium-sample.dat.bz2 small-sample.dat.bz2 0.1
