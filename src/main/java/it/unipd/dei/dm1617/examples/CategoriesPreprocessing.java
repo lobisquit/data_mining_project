@@ -19,31 +19,39 @@ import java.util.List;
  */
 public class CategoriesPreprocessing {
 
-  public static void main(String[] args) {
-    String dataPath = args[0];
+    public static void main(String[] args) {
+        String dataPath = args[0];
 
-    // Usual setup
-    SparkConf conf = new SparkConf(true).setAppName("Categories Count");
-    JavaSparkContext sc = new JavaSparkContext(conf);
+        // Usual setup
+        SparkConf conf = new SparkConf(true).setAppName("Categories Count");
+        JavaSparkContext sc = new JavaSparkContext(conf);
 
-    // useful to see your output
-    sc.setLogLevel("ERROR");
+        // useful to see your output
+        sc.setLogLevel("ERROR");
 
-    // Load dataset of pages
-    JavaRDD<WikiPage> pages = InputOutput.read(sc, dataPath);
+        // Load dataset of pages
+        JavaRDD<WikiPage> pages = InputOutput.read(sc, dataPath);
 
-    JavaRDD<String> categories = pages.flatMap( (doc) -> new ArrayListIterator(doc.getCategories()) );
+        JavaRDD<String> categories = pages.flatMap((doc) -> new ArrayListIterator(doc.getCategories()));
 
-    JavaPairRDD<String, Integer> categoriesCount = categories
-        .mapToPair((w) -> new Tuple2<>(w, 1 ))
-        .reduceByKey((x, y) -> x + y);
+        JavaPairRDD<String, Integer> countCategoryMembers = categories
+                .mapToPair((w) -> new Tuple2<>(w, 1))
+                .reduceByKey((x, y) -> x + y);
 
+        // count how many articles have a given number of categories
+        JavaPairRDD<Integer, Integer> categoriesCount = countCategoryMembers
+                // create from each article a pair
+                // (number of categories for given article, 1), then sum values
+                .mapToPair((members) -> new Tuple2<Integer, Integer>(members._2(), 1))
+                .reduceByKey((x, y) -> x + y);
 
-    // List<Tuple2<WikiPage, Vector>> firstCount = categoriesCount.take(2);
-    System.out.println("\n\n ######################## Categories Count \n");
-    System.out.println( categoriesCount.take(1000 ) );
-    System.out.println("\n\n # END ####################### \n");
-    
-  }
+        System.out.println("\n------------> Categories Count");
+        System.out.println(categoriesCount.take(10));
+        System.out.println("<------------");
+
+        // save result as text in proper directory
+        categoriesCount.saveAsTextFile("output/article_per_category_size");
+
+    }
 
 }
