@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 median([[1], [2]])
-%matplotlib
+
 report = []
 with open('../output/article_per_category_size/part-00000') as report_file:
     for line in report_file:
