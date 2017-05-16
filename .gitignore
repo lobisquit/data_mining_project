@@ -2,4 +2,7 @@
 .idea
 build/*
 dataset/*
+output/*
+*.sh
+*.log
 !dataset/README.md
