@@ -13,7 +13,7 @@ def get_classpath():
 
 	if classpath.is_file():
 		# read classpath if already saved
-		with open(classpath, 'r') as classpath_file:
+		with open(str(classpath), 'r') as classpath_file:
 			return str(classpath_file.read().strip())
 	else:
 		# create it if not available
@@ -22,7 +22,7 @@ def get_classpath():
 			shell=True).strip().decode('utf-8')
 		classpath_elements += ':build/classes/main'
 
-		with open(classpath, 'w') as classpath_file:
+		with open(str(classpath), 'w') as classpath_file:
 			classpath_file.write(classpath_elements)
 
 		return classpath_elements
