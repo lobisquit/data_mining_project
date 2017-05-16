@@ -95,9 +95,10 @@ public class Doc2Vec{
                         return new Tuple2<>(falseId, Vectors.zeros(100));
                     }
                 });
+
         //save the wikiVectors javaRDD
         String[] parts = dataPathWiki.split("/");
-        wikiVectors.saveAsTextFile("output/"+parts[1]+".wv");
+        wikiVectors.saveAsObjectFile("output/"+parts[1]+".wv");
 
         //print for debug if needed
         /*wikiVectors.foreach((tuple)->{
