@@ -1,9 +1,15 @@
 .gradle
 .idea
 build/*
-gradle/
+gradle/*
+
+# input datasets
 dataset/*
 !dataset/README.md
+
+# result of spark processing
+output/*
+!output/README.md
 
 # spark folder when running distributed
 spark-warehouse/

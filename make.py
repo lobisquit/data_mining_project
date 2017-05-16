@@ -5,6 +5,7 @@ import re
 import subprocess
 from pathlib import Path
 
+Path('make.py').is_file()
 
 def get_classpath():
 	''' Retrieve Java executable classpath '''
@@ -77,6 +78,10 @@ if __name__ == '__main__':
 
 	# compile project
 	exec_command('./gradlew compileJava')
+
+	# create a project jar (needed for parallel execution) if not present
+	if not Path('build/libs/data_mining_project-1.0-SNAPSHOT-all.jar').is_file():
+		exec_command('./gradlew shadowJar')
 
 	# restart all spark instances if running distributed
 	if cmd_args.master != 'local':
