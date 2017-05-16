@@ -32,5 +32,4 @@ public class Distance {
     // rescale by PI instead of PI/2
     return (2 / Math.PI) * Math.acos(cosine);
   }
-    
 }

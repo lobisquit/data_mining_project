@@ -21,9 +21,11 @@ public class TfIdfTransformation {
     String dataPath = args[0];
 
     // Usual setup
-    SparkConf conf = new SparkConf(true).setAppName("Tf-Ifd transformation");
+    SparkConf conf = new SparkConf(true).setAppName("Tf-Ifd transformation")
+            .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+            .setJars(new String[] {"build/libs/data_mining_project-1.0-SNAPSHOT-all.jar"});;
     JavaSparkContext sc = new JavaSparkContext(conf);
-
+    
     // Load dataset of pages
     JavaRDD<WikiPage> pages = InputOutput.read(sc, dataPath);
 
