@@ -25,11 +25,11 @@ import java.util.List;
 import java.util.Arrays;
 
 /**
- * Program to transform a wikiPage to a vector
+ * Program to transform a wikiPage to a vector, the result will be saved in a directory
+ * with the same name given in args[1] with the add of .wv in the end
  * @author Dalla Cia Massimo
  */
 public class Doc2Vec{
-
     public static void main(String[] args) {
         String dataPathW2V = args[0];
         String dataPathWiki = args[1];
@@ -55,66 +55,55 @@ public class Doc2Vec{
                     String text = p.getText();
                     ArrayList<String> words = Lemmatizer.lemmatize(text);
                     if(p.getCategories().length>0 && words.size()>0) {
-                        double norm;
-                        Vector v;
-                        int cont = 0;
-                        ArrayList<String> doc = new ArrayList();
-
                         //preprocessing of the words
+                        ArrayList<String> doc = new ArrayList();
                         for (String word : words) {
-                            try {
-                                v = w2vM.transform(word);
-                                norm = ExsltMath.sqrt(BLAS.dot(v, v));
-                                if (!stopWords.contains(word.toLowerCase()) && word.length() > 2 &&
-                                        !doc.contains(word.toLowerCase())
-                                        ) {
-                                    doc.add(word);
-                                }
-                            } catch (java.lang.IllegalStateException e) {
+                            if (    !stopWords.contains(word.toLowerCase()) &&
+                                    word.length() > 2 &&
+                                    !doc.contains(word.toLowerCase())
+                                    ) {
+
+                                doc.add(word);
                             }
                         }
 
                         //calcuate the vector of the wiki page
                         if(doc.size()==0){
+                            //case in which the preprocessing deleted all words
+                            //todo non voglio tornare un vettore ma non so come fare per ora
                             Long falseId= new Long(-1);
                             return new Tuple2<>(falseId, Vectors.zeros(100));
                         }
+
                         Vector q;
                         Vector w = Vectors.zeros(100);//todo rimuovo il valore hardcoded 100
                         for (String word : doc) {
-                            q = w2vM.transform(word);
-                            BLAS.axpy(1.0, q, w);
+                            try{
+                                q = w2vM.transform(word);
+                                BLAS.axpy(1.0, q, w);
+                            } catch (java.lang.IllegalStateException e) {
+                            }
                         }
                         double den = (double) doc.size();
                         double scal = (1.0/den);
                         BLAS.scal(scal, w);
                         return new Tuple2<>(p.getId(), w);
                     }else{
-                        //case disambigua
+                        //disambigua case
                         //todo non voglio tornare un vettore ma non so come fare per ora
                         Long falseId= new Long(-1);
                         return new Tuple2<>(falseId, Vectors.zeros(100));
                     }
                 });
-        //todo devo salvare in qualche modo la variabile wikiVectors
-        //todo così da poterla usare più volte senza ricalcolarla
+        //save the wikiVectors javaRDD
+        String[] parts = dataPathWiki.split("/");
+        wikiVectors.saveAsTextFile("output/"+parts[1]+".wv");
 
-        //print for debug
-        wikiVectors.foreach((tuple)->{
+        //print for debug if needed
+        /*wikiVectors.foreach((tuple)->{
             if(tuple._1()>new Long(0)){
                 System.out.println("id "+tuple._1()+"\n"+tuple._2().toJson()+"\n");
             }
-
-        });
-
-
-        /*
-        JavaPairRDD<WikiPage, Vector> pagesAndVectors = pages.zip(tfidf);
-        //List<Tuple2<WikiPage, Vector>> firstPages = pagesAndVectors.take(1000);
-        Vector v1=w2vM.transform("home");
-        Vector v2=w2vM.transform("house");
-        double alfa=Distance.cosineDistance(v1,v2);
-        */
-
+        });*/
     }
 }

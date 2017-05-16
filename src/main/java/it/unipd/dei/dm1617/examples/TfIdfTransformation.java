@@ -99,6 +99,16 @@ public class TfIdfTransformation {
 
     System.out.println("\n################### END ############################");
     //-----------------------------------------------------------------------
+
+    //example to calculate distance between 2 vector
+    /*
+    JavaPairRDD<WikiPage, Vector> pagesAndVectors = pages.zip(tfidf);
+    //List<Tuple2<WikiPage, Vector>> firstPages = pagesAndVectors.take(1000);
+    Vector v1=w2vM.transform("home");
+    Vector v2=w2vM.transform("house");
+    double alfa=Distance.cosineDistance(v1,v2);
+    */
+
   }
 
   public static void printCategories(List<Tuple2<WikiPage, Vector>> firstPages){
