@@ -5,7 +5,6 @@ import re
 import subprocess
 from pathlib import Path
 
-Path('make.py').is_file()
 
 def get_classpath():
 	''' Retrieve Java executable classpath '''
@@ -99,5 +98,3 @@ if __name__ == '__main__':
 		CP=get_classpath(),
 		# path for native hadoop libraries
 		LD_LIBRARY_PATH='/usr/lib/hadoop/lib/native/:$LD_LIBRARY_PATH')
-
-	# print(get_classpath())
