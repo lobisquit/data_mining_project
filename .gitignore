@@ -5,6 +5,9 @@ gradle/*
 
 # input datasets
 dataset/*
+output/*
+*.sh
+*.log
 !dataset/README.md
 
 # result of spark processing
