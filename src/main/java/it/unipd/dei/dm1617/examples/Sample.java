@@ -18,7 +18,11 @@ public class Sample {
     double fraction = Double.parseDouble(args[2]);
 
     // The usual Spark setup
-    SparkConf conf = new SparkConf(true).setAppName("Sampler");
+    SparkConf conf = new SparkConf(true)
+        .setAppName("Sampler")
+        .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        .setJars(new String[] {"build/libs/data_mining_project-1.0-SNAPSHOT-all.jar"});
+
     JavaSparkContext sc = new JavaSparkContext(conf);
 
     // Read the pages from the path provided as the first argument.

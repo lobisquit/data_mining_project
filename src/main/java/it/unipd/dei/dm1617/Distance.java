@@ -34,5 +34,4 @@ public class Distance {
     //return (2 / Math.PI) * Math.acos(cosine);
     return (1 / Math.PI) * Math.acos(cosine);
   }
-    
 }
