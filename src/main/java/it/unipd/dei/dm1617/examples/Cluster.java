@@ -4,6 +4,7 @@ import it.unipd.dei.dm1617.WikiPage;
 import it.unipd.dei.dm1617.WikiV;
 import org.apache.hadoop.mapred.join.ArrayListBackedIterator;
 import org.apache.spark.SparkConf;
+import org.apache.spark.mllib.clustering.*;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaRDDLike;
@@ -22,10 +23,14 @@ import java.io.File;
  */
 public class Cluster {
     public static void main(String[] args){
+        // reading input path
         String path = args[0];
         if(!path.endsWith("/")){
             path=path + "/";
         }
+
+        // reading clustering tecnique id
+        int clusteringID = Integer.parseInt(args[1]);
 
         // usual Spark setup
         SparkConf conf = new SparkConf(true).setAppName("Tf-Ifd transformation");
@@ -60,15 +65,41 @@ public class Cluster {
             return elem._2();
         });
 
-        // cluster the data into two classes using KMeans
+        // cluster the data into two classes using method specified in args[1]
         System.out.println("Performing clustering");
         int numClusters = 60;
         int numIterations = 20;
-        KMeansModel clusters = KMeans.train(onlyVectors.rdd(), numClusters, numIterations);
 
-        // retrieve corresponding group for each of the input data,
-        // to associate each cluster with the actual WikiPages
-        JavaRDD<Integer> clusterIDs = clusters.predict(onlyVectors);
+        // train and classify dataset with the specified tecnique
+        // note that corresponding group for each point of the input (training)
+        // dataset is computed, to associate each cluster with the actual WikiPages
+        // that it contains
+        JavaRDD<Integer> clusterIDs;
+        switch (clusteringID) {
+            case 1:
+                KMeansModel kmeans =
+                    KMeans.train(onlyVectors.rdd(), numClusters, numIterations);
+                clusterIDs = kmeans.predict(onlyVectors);
+                break;
+
+            case 2:
+                GaussianMixtureModel gaussianMixture =
+                    new GaussianMixture()
+                        .setK(numClusters)
+                        .run(onlyVectors.rdd());
+                clusterIDs = gaussianMixture.predict(onlyVectors);
+                break;
+
+            case 3:
+                BisectingKMeansModel bisectingKmeans = new BisectingKMeans()
+                    .setK(numClusters)
+                    .run(onlyVectors.rdd());
+                clusterIDs = bisectingKmeans.predict(onlyVectors);
+
+            default:
+                throw new IllegalArgumentException(
+                    "Invalid clustering tecnique ID set as args[1]=" + clusteringID);
+        }
 
         // create an RDD with (cluster_id, (wikipage_id, vector))
         JavaPairRDD<Integer, Tuple2<Long, Vector>> completeDataset =
@@ -76,7 +107,7 @@ public class Cluster {
 
         // map each row to a json string representation, as a general save / load
         // format
-        JavaRDD<String> jsonDataset = completeDataset.map((tuple)->{
+        JavaRDD<String> jsonDataset = completeDataset.map((tuple) -> {
             return "{" +
                     "\"id_cluster\": " + tuple._1() + "," +
                     "\"id_wiki\": " + tuple._2()._1() + "," +
@@ -86,7 +117,8 @@ public class Cluster {
 
         // collapse all parallel outputs to a single RDD (1) and save
         // this is needed to have a single output file
-        jsonDataset.coalesce(1).saveAsTextFile("output/kmeans");
+        jsonDataset.coalesce(1).saveAsTextFile(
+            "output/cluster_with_tecnique_" + clusteringID);
     }
 
 }
