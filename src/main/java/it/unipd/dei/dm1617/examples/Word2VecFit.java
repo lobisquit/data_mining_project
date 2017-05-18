@@ -58,6 +58,6 @@ public class Word2VecFit {
 
     // fit model and save to output file
     Word2VecModel w2vM = w2vec.fit(lemmas);
-    w2vM.save(JavaSparkContext.toSparkContext(sc), "output/dataset.w2v");
+        w2vM.save(JavaSparkContext.toSparkContext(sc), "output/"+ inputPath.split("/")[1] + ".w2v");
   }
 }
