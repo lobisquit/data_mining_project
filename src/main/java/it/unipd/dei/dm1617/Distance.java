@@ -30,7 +30,8 @@ public class Distance {
     // If you wish to use this function with vectors that can have
     // negative components (like the ones given by word2vec), then
     // rescale by PI instead of PI/2
-    return (2 / Math.PI) * Math.acos(cosine);
+
+    //return (2 / Math.PI) * Math.acos(cosine);
+    return (1 / Math.PI) * Math.acos(cosine);
   }
-    
 }
