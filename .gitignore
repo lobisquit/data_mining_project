@@ -6,6 +6,7 @@ gradle/*
 # input datasets
 dataset/*
 !dataset/README.md
+!dataset/stop_words.txt
 
 # local files
 *.sh
