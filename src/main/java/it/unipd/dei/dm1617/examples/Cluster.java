@@ -33,7 +33,7 @@ public class Cluster {
         int clusteringID = Integer.parseInt(args[1]);
 
         // usual Spark setup
-        SparkConf conf = new SparkConf(true).setAppName("Tf-Ifd transformation");
+        SparkConf conf = new SparkConf(true).setAppName("Clustering");
         JavaSparkContext sc = new JavaSparkContext(conf);
         sc.setLogLevel("ERROR");
 
