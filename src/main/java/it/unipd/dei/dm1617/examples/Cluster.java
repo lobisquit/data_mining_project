@@ -80,6 +80,11 @@ public class Cluster {
                 KMeansModel kmeans =
                     KMeans.train(onlyVectors.rdd(), numClusters, numIterations);
                 clusterIDs = kmeans.predict(onlyVectors);
+
+                // compute kmeans objective function on training dataset
+                System.out.println("-------------> kmeans objective function = "
+                    + kmeans.computeCost(onlyVectors.rdd()));
+                System.out.println("-------------> see https://goo.gl/QnjpHo");
                 break;
 
             case 2:
