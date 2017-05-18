@@ -83,7 +83,7 @@ if __name__ == '__main__':
 		exec_command('./gradlew shadowJar')
 
 	# restart all spark instances if running distributed
-	if cmd_args.master != 'local':
+	if not cmd_args.master.startswith('local'):
 		exec_command(cmd_args.spark_path.joinpath('sbin', 'stop-all.sh'))
 		exec_command(cmd_args.spark_path.joinpath('sbin', 'start-all.sh'),
 			# path for native hadoop libraries
