@@ -30,7 +30,7 @@ public class Cluster {
         }
 
         // reading clustering tecnique id
-        int clusteringID = Integer.parseInt(args[1]);
+        String clusteringName = args[1];
 
         // usual Spark setup
         SparkConf conf = new SparkConf(true).setAppName("Clustering");
@@ -75,8 +75,8 @@ public class Cluster {
         // dataset is computed, to associate each cluster with the actual WikiPages
         // that it contains
         JavaRDD<Integer> clusterIDs;
-        switch (clusteringID) {
-            case 1:
+        switch (clusteringName) {
+            case "KMeans":
                 KMeansModel kmeans =
                     KMeans.train(onlyVectors.rdd(), numClusters, numIterations);
                 clusterIDs = kmeans.predict(onlyVectors);
@@ -87,7 +87,7 @@ public class Cluster {
                 System.out.println("-------------> see https://goo.gl/QnjpHo");
                 break;
 
-            case 2:
+            case "GaussianMixture":
                 GaussianMixtureModel gaussianMixture =
                     new GaussianMixture()
                         .setK(numClusters)
@@ -95,7 +95,7 @@ public class Cluster {
                 clusterIDs = gaussianMixture.predict(onlyVectors);
                 break;
 
-            case 3:
+            case "BisectingKMeans":
                 BisectingKMeansModel bisectingKmeans = new BisectingKMeans()
                     .setK(numClusters)
                     .run(onlyVectors.rdd());
@@ -103,7 +103,7 @@ public class Cluster {
 
             default:
                 throw new IllegalArgumentException(
-                    "Invalid clustering tecnique ID set as args[1]=" + clusteringID);
+                    "Invalid clustering tecnique -> " + clusteringName);
         }
 
         // create an RDD with (cluster_id, (wikipage_id, vector))
@@ -123,7 +123,7 @@ public class Cluster {
         // collapse all parallel outputs to a single RDD (1) and save
         // this is needed to have a single output file
         jsonDataset.coalesce(1).saveAsTextFile(
-            "output/cluster_with_tecnique_" + clusteringID);
+            "output/cluster_" + clusteringName + ".cr");
     }
 
 }

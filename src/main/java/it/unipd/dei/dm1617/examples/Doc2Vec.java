@@ -121,7 +121,7 @@ public class Doc2Vec{
 
         // save the wikiVectors javaRDD with the name of the input WikiPages RDD
         String[] parts = dataPathWiki.split("/");
-        wikiVectors.saveAsObjectFile("output/" + parts[1] + ".wv");
+        wikiVectors.saveAsObjectFile("output/" + parts[1] + ".wpv");
 
         //print for debug if needed
         /*wikiVectors.foreach((tuple)->{
