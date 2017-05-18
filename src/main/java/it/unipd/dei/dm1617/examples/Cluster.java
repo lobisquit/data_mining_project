@@ -24,65 +24,69 @@ public class Cluster {
     public static void main(String[] args){
         String path = args[0];
         if(!path.endsWith("/")){
-            path=path+"/";
+            path=path + "/";
         }
 
-        // Usual setup
+        // usual Spark setup
         SparkConf conf = new SparkConf(true).setAppName("Tf-Ifd transformation");
         JavaSparkContext sc = new JavaSparkContext(conf);
         sc.setLogLevel("ERROR");
-        System.err.println("##############################################################################################################################");
 
-        //load file
-        System.err.println("load files");
+        // mark the starting point of our subsequent messages
+        System.out.println("###################################################" +
+            "#################################################################");
+
+        // load Doc2Vec page representation, i.e. tuples (wikipage_id, vector),
+        // from the multiple output files
+        System.out.println("load files");
         ArrayList<JavaRDD<Tuple2<Long, Vector>>> wikiVectors = new ArrayList();
         File folder = new File(path);
-        File[] listOfFiles = folder.listFiles();
-        for (File file : listOfFiles) {
+        for (File file : folder.listFiles()) {
             String fName=file.getName();
             if (file.isFile() && !fName.startsWith("_") && !fName.startsWith(".")) {
-                wikiVectors.add(sc.objectFile(path+""+fName));
-                //System.err.println(path+""+fName);
+                wikiVectors.add(sc.objectFile(path + fName));
             }
         }
 
-        System.err.println("get a unique file");
+        // merge all chunks in  a single RDD
+        System.out.println("get a unique file");
         JavaRDD<Tuple2<Long, Vector>> allWikiVector = wikiVectors.remove(0);
         for(JavaRDD<Tuple2<Long, Vector>> app:wikiVectors){
             allWikiVector = allWikiVector.union(app);
         }
-        //System.err.println("tot "+allWikiVector.count());
 
-
-        JavaRDD<Vector> onlyVectors = allWikiVector.map(elem->{
+        // remove id, since clustering requires RDD of Vectors
+        JavaRDD<Vector> onlyVectors = allWikiVector.map(elem -> {
             return elem._2();
         });
 
-        // Cluster the data into two classes using KMeans
-        System.err.println("clustering");
+        // cluster the data into two classes using KMeans
+        System.out.println("Performing clustering");
         int numClusters = 60;
         int numIterations = 20;
         KMeansModel clusters = KMeans.train(onlyVectors.rdd(), numClusters, numIterations);
 
-        //get vectors cluster
-        JavaRDD<Integer> indici = clusters.predict(onlyVectors);
+        // retrieve corresponding group for each of the input data,
+        // to associate each cluster with the actual WikiPages
+        JavaRDD<Integer> clusterIDs = clusters.predict(onlyVectors);
 
-        //join the 2 RDD in only one
+        // create an RDD with (cluster_id, (wikipage_id, vector))
+        JavaPairRDD<Integer, Tuple2<Long, Vector>> completeDataset =
+            clusterIDs.zip(allWikiVector);
 
-        JavaPairRDD<Integer,Tuple2<Long, Vector>> all = indici.zip(allWikiVector);
-
-        JavaRDD<String> out = all.map((tuple)->{
-            String str=
-                    "{"+"\"id_cluster\": "+tuple._1()+"," +
-                    "\"id_wiki\": "+tuple._2()._1()+"," +
-                    "\"vector\": "+tuple._2()._2();
-            str+="}";
-            return str;
-
+        // map each row to a json string representation, as a general save / load
+        // format
+        JavaRDD<String> jsonDataset = completeDataset.map((tuple)->{
+            return "{" +
+                    "\"id_cluster\": " + tuple._1() + "," +
+                    "\"id_wiki\": " + tuple._2()._1() + "," +
+                    "\"vector\": " + tuple._2()._2()
+                   + "}";
         });
-        JavaRDD<String> finalOut = out.coalesce(1);
-        System.err.println("Salvo il file");
-        finalOut.saveAsTextFile("output/clusterResult");
+
+        // collapse all parallel outputs to a single RDD (1) and save
+        // this is needed to have a single output file
+        jsonDataset.coalesce(1).saveAsTextFile("output/kmeans");
     }
 
 }
