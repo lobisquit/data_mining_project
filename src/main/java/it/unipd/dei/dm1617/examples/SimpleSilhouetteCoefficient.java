@@ -7,10 +7,10 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaRDDLike;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.mllib.clustering.KMeans;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
 
+import org.apache.spark.mllib.util.MLUtils;
 import scala.Tuple2;
 
 import java.util.ArrayList;
@@ -25,13 +25,13 @@ public class SimpleSilhouetteCoefficient {
      */
     public static void main(String[] args){
         
-        String kStart = new Integer.parseInt(args[0]);
-        String kEnd = new Integer.parseInt(args[1]);
+        int kStart = new Integer.parseInt(args[0]);
+        int kEnd = new Integer.parseInt(args[1]);
 
         // reading clustering tecnique name
         String dataset = "dataset/medium-sample.dat.wpv";
         String clusteringName = "KMeans";
-        int numClusters = 50;
+        //int numClusters = 50;
         int numIterations = 20;
 
         // Spark setup
@@ -43,11 +43,22 @@ public class SimpleSilhouetteCoefficient {
         // mark the starting point of our subsequent messages
         System.out.println("Starting Simple Silhouette");
 
-        for(int i=kStart, i <= kEnd, i*=2){
+        JavaRDD<Vector> articlesAsVectors = getArticlesAsVectors(dataset);
+        System.out.println("Articles representation loaded");
 
-            Vector[] centroids = loadCentroids(sc, clusteringName, numClusters, numIterations);
+        
+        for(int i=kStart; i <= kEnd; i*=2){
+
+            KMeansModel model = getKMeansModel(sc, dataset, clusteringName, i, numIterations);
+
+            Vector[] centroids = model.clusterCenters();
+
+            JavaRDD<Integer> predictedClusters = model.predict(articlesAsVectors);
 
             // computeDistanceFromItsCentroid
+            //System.out.print("No");
+
+            //MLUtils.fastSquaredDistance(centroids[0], norm1, centroids[1], double norm2, 5);
 
             // computeMinDistanceFromOtherCentroids
             
@@ -56,7 +67,7 @@ public class SimpleSilhouetteCoefficient {
         }        
     }
 
-    public static Vector[] loadCentroids(JavaSparkContext sc, String clusteringName, int numClusters, int numIterations){
+    public static KMeansModel getKMeansModel(JavaSparkContext sc, String dataset, String clusteringName, int numClusters, int numIterations){
 
         // uses output file with the format from Cluster.java class
         String modelToLoad =    "output/" + clusteringName +
@@ -73,9 +84,40 @@ public class SimpleSilhouetteCoefficient {
 
         // load kmeansmodel representation
         KMeansModel kMeansModel = KMeansModel.load(sc.sc(), modelToLoad);
-        Vector[] centroids = kMeansModel.clusterCenters();
 
-        return centroids
+        return kMeansModel;
+    }
+
+    public static JavaRDD<Vector> getArticlesAsVectors(String dataset){
+
+        String wpvPath = dataset;
+        if(!wpvPath.endsWith("/")){
+            wpvPath = wpvPath + "/";
+        }
+
+        // load our articles represented as vectors
+        // (wikipage_id, Doc2Vec vector)
+        ArrayList<JavaRDD<Tuple2<Long, Vector>>> wikiVectors = new ArrayList();
+        File folder = new File(wpvPath);
+        for (File file : folder.listFiles()) {
+            String fName = file.getName();
+            if (file.isFile() && !fName.startsWith("_") && !fName.startsWith(".")) {
+                wikiVectors.add(sc.objectFile(wpvPath + fName));
+            }
+        }
+
+        // merge all chunks in  a single RDD
+        JavaRDD<Tuple2<Long, Vector>> allWikiVector = wikiVectors.remove(0);
+        for(JavaRDD<Tuple2<Long, Vector>> app:wikiVectors){
+            allWikiVector = allWikiVector.union(app);
+        }
+
+        // remove id, since clustering requires RDD of Vectors
+        JavaRDD<Vector> articlesAsVectors = allWikiVector.map(elem -> {
+            return elem._2();
+        });
+
+        return articlesAsVectors;
     }
 
 }
