@@ -28,10 +28,11 @@ public class Cluster {
      * @param args[3] number of iteration
      */
     public static void main(String[] args){
-        // reading input path
-        String path = args[0];
-        if(!path.endsWith("/")){
-            path=path + "/";
+        // reading input path of wpv file, that contains tuples
+        // (wikipage_id, Doc2Vec vector)
+        String wpvPath = args[0];
+        if(!wpvPath.endsWith("/")){
+            wpvPath = wpvPath + "/";
         }
 
         // reading clustering tecnique name
@@ -52,9 +53,9 @@ public class Cluster {
         // from the multiple output files
         System.out.println("load files");
         ArrayList<JavaRDD<Tuple2<Long, Vector>>> wikiVectors = new ArrayList();
-        File folder = new File(path);
+        File folder = new File(wpvPath);
         for (File file : folder.listFiles()) {
-            String fName=file.getName();
+            String fName = file.getName();
             if (file.isFile() && !fName.startsWith("_") && !fName.startsWith(".")) {
                 wikiVectors.add(sc.objectFile(path + fName));
             }
