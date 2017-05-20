@@ -71,6 +71,8 @@ public class ClusterEvaluation {
         });
 
         JavaRDD<Vector> dataSample = onlyVectors.sample(false, SAMPLE_SIZE);
+        JavaRDD<Vector> negativeDataSample = onlyVectors.subtract(dataSample);
+
         int vectorSize = onlyVectors.take(1).get(0).size(); // get the dimension of a single vector
 
         System.out.println("Generating random vectors..");
@@ -87,23 +89,30 @@ public class ClusterEvaluation {
         JavaRDD<Vector> randSample = sc.parallelize(randList);
 
         System.out.println("Computing distances..");
+
         // find the nearest sampled point for every vector
-        List<Vector> listOnlyVector = onlyVectors.collect();
-        KMeansModel centers = new KMeansModel(listOnlyVector); // kmeans model used with defined centers
-        int i = 0;
+
+        List<Vector> listNegativeDataSample = negativeDataSample.collect();
+        // kmeans model used with defined centers
+        KMeansModel dataCentersModel = new KMeansModel(listNegativeDataSample);
         JavaRDD<Double> dataDistances = dataSample.map((vector)->{
-            Vector nearestPoint = listOnlyVector.get(centers.predict(vector)); // closer onlyVector point to the actual dataSample point
+            Vector nearestPoint = listNegativeDataSample.get(dataCentersModel.predict(vector));
             return Vectors.sqdist(nearestPoint, vector);
         });
+
+        List<Vector> listComplete = onlyVectors.collect();
+        // kmeans model used with defined centers
+        KMeansModel randCentersModel = new KMeansModel(listComplete);
         JavaRDD<Double> randDistances = randSample.map((vector)->{
-            Vector nearestPoint = listOnlyVector.get(centers.predict(vector)); // closer onlyVector point to the actual dataSample point
+            Vector nearestPoint = listComplete.get(randCentersModel.predict(vector));
             return Vectors.sqdist(nearestPoint, vector);
         });
 
         System.out.println("Computing Hopkins statistics..");
         double dataDistSum = dataDistances.reduce((accum, n) -> (accum + n));
-        System.out.println("Data reduce done.");
+        System.out.println("1/2 reduce done.");
         double randDistSum = randDistances.reduce((accum, n) -> (accum + n));
+        System.out.println("2/2 reduce done.");
         double hopkins = dataDistSum / (dataDistSum+randDistSum);
         System.out.println("dataDistSum = "+dataDistSum+", randDistSum = "+randDistSum);
         System.out.println("Hopkins statistic: "+hopkins);
