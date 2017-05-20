@@ -57,7 +57,7 @@ public class Cluster {
         for (File file : folder.listFiles()) {
             String fName = file.getName();
             if (file.isFile() && !fName.startsWith("_") && !fName.startsWith(".")) {
-                wikiVectors.add(sc.objectFile(path + fName));
+                wikiVectors.add(sc.objectFile(wpvPath + fName));
             }
         }
 
@@ -75,7 +75,6 @@ public class Cluster {
 
         // cluster the data into two classes using method specified in args[1]
         System.out.println("performing clustering");
-
 
         // train and classify dataset with the specified tecnique
         // note that corresponding group for each point of the input (training)
