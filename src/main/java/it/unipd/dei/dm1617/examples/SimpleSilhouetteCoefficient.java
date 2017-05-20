@@ -20,30 +20,43 @@ import java.io.File;
  */
 public class SimpleSilhouetteCoefficient {
     /**
-     * @param args[0] path of medium-sample.dat.wpv
-     * @param args[1] clustering tecnique name
-     * @param args[2] number of cluster
-     * @param args[3] number of iteration
+     * @param args[0] number of clusters to start from
+     * @param args[1] number of clusters to end to
      */
     public static void main(String[] args){
         
+        String kStart = new Integer.parseInt(args[0]);
+        String kEnd = new Integer.parseInt(args[1]);
 
         // reading clustering tecnique name
-        String dataset = args[0];
-        //String clusteringName = args[1];
+        String dataset = "dataset/medium-sample.dat.wpv";
         String clusteringName = "KMeans";
-        //int numClusters = Integer.parseInt(args[2]);
         int numClusters = 50;
-        //int numIterations = Integer.parseInt(args[3]);
         int numIterations = 20;
 
-        // usual Spark setup
-        SparkConf conf = new SparkConf(false).setAppName("SimplelSilhouetteCoefficient");
+        // Spark setup
+        // setMaster is needed to call the clustering (performed in Cluster.java) without conflicts
+        SparkConf conf = new SparkConf(false).setAppName("SimplelSilhouetteCoefficient").setMaster("local[2]");
         JavaSparkContext sc = new JavaSparkContext(conf);
         sc.setLogLevel("ERROR");
 
         // mark the starting point of our subsequent messages
-        System.out.println("###");
+        System.out.println("Starting Simple Silhouette");
+
+        for(int i=kStart, i <= kEnd, i*=2){
+
+            Vector[] centroids = loadCentroids(sc, clusteringName, numClusters, numIterations);
+
+            // computeDistanceFromItsCentroid
+
+            // computeMinDistanceFromOtherCentroids
+            
+            // calculateSimpleSilhouetteCoefficient
+
+        }        
+    }
+
+    public static Vector[] loadCentroids(JavaSparkContext sc, String clusteringName, int numClusters, int numIterations){
 
         // uses output file with the format from Cluster.java class
         String modelToLoad =    "output/" + clusteringName +
@@ -51,86 +64,18 @@ public class SimpleSilhouetteCoefficient {
                                 "_n_iterat_" + numIterations +
                                 ".cm";
 
-        Cluster.doClustering(sc, dataset, clusteringName, numClusters, numIterations);
+        // if the kmeans model has not already been computed, lets do it
+        if(!new File(modelToLoad).exists()){
+            System.out.println("KMeansModel not found for " + numClusters + " clusters with "+ numIterations + " iterations.");
+            System.out.println("Calculating model...");
+            Cluster.doClustering(sc, dataset, clusteringName, numClusters, numIterations);
+        }
 
         // load kmeansmodel representation
         KMeansModel kMeansModel = KMeansModel.load(sc.sc(), modelToLoad);
         Vector[] centroids = kMeansModel.clusterCenters();
 
-        System.out.print(centroids[0]);
-
-        /*
-        System.out.println("load files");
-        ArrayList<JavaRDD<Tuple2<Long, Vector>>> wikiVectors = new ArrayList();
-        File folder = new File(wpvPath);
-        for (File file : folder.listFiles()) {
-            String fName = file.getName();
-            if (file.isFile() && !fName.startsWith("_") && !fName.startsWith(".")) {
-                wikiVectors.add(sc.objectFile(wpvPath + fName));
-            }
-        }
-
-        // merge all chunks in  a single RDD
-        System.out.println("get a unique file");
-        JavaRDD<Tuple2<Long, Vector>> allWikiVector = wikiVectors.remove(0);
-        for(JavaRDD<Tuple2<Long, Vector>> app:wikiVectors){
-            allWikiVector = allWikiVector.union(app);
-        }
-
-        // remove id, since clustering requires RDD of Vectors
-        JavaRDD<Vector> onlyVectors = allWikiVector.map(elem -> {
-            return elem._2();
-        });
-
-        // cluster the data into two classes using method specified in args[1]
-        System.out.println("performing clustering");
-
-        // train and classify dataset with the specified tecnique
-        // note that corresponding group for each point of the input (training)
-        // dataset is computed, to associate each cluster with the actual WikiPages
-        // that it contains
-        JavaRDD<Integer> clusterIDs;
-        switch (clusteringName) {
-            case "KMeans":
-                // train model on dataset
-                KMeansModel kmeans =
-                    KMeans.train(onlyVectors.rdd(), numClusters, numIterations);
-
-                // save model to output and exit
-                kmeans.save(sc.sc(),
-                    "output/" + clusteringName +
-                    "_n_cluster_" + numClusters +
-                    "_n_iterat_" + numIterations +
-                    ".cm");
-                break;
-
-            case "GaussianMixture":
-                GaussianMixtureModel gaussianMixture =
-                    new GaussianMixture()
-                        .setK(numClusters)
-                        .run(onlyVectors.rdd());
-                gaussianMixture.save(sc.sc(),
-                    "output/" + clusteringName +
-                    "_n_cluster_" + numClusters +
-                    "_n_iterat_" + numIterations +
-                    ".cm");
-                break;
-
-            case "BisectingKMeans":
-                BisectingKMeansModel bisectingKmeans = new BisectingKMeans()
-                    .setK(numClusters)
-                    .run(onlyVectors.rdd());
-                bisectingKmeans.save(sc.sc(),
-                    "output/" + clusteringName +
-                    "_n_cluster_" + numClusters +
-                    "_n_iterat_" + numIterations +
-                    ".cm");
-                break;
-
-            default:
-                throw new IllegalArgumentException(
-                    "Invalid clustering tecnique -> " + clusteringName);
-        }/**/
+        return centroids
     }
 
 }
