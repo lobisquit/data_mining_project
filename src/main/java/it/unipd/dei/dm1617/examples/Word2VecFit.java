@@ -28,34 +28,36 @@ import java.util.List;
 public class Word2VecFit {
 
   public static void main(String[] args) {
-    String dataPath = args[0];
+    String inputPath = args[0];
 
-    // Usual setup
-    SparkConf conf = new SparkConf(true).setAppName("Tf-Ifd transformation");
+    // usual Spark setup
+    SparkConf conf = new SparkConf(true).setAppName("Word2Vec");
     JavaSparkContext sc = new JavaSparkContext(conf);
     sc.setLogLevel("ERROR");
 
-    // Load dataset of pages
-    JavaRDD<WikiPage> pages = InputOutput.read(sc, dataPath);
+    // mark the starting point of our subsequent messages
+    System.out.println("###################################################" +
+        "#################################################################");
 
-    // Get text out of pages
+    // load dataset of wiki pages
+    JavaRDD<WikiPage> pages = InputOutput.read(sc, inputPath);
+
+    // extract text out of pages and pass it to the lemmatizer
     JavaRDD<String> texts = pages.map((p) -> p.getText());
-
-    // Get the lemmas. It's better to cache this RDD since the
-    // following operation, lemmatization, will go through it two
-    // times.
     JavaRDD<ArrayList<String>> lemmas = Lemmatizer.lemmatize(texts).cache();
 
-    //word2vec
-    Word2Vec w2vec=new Word2Vec();
-    w2vec.setLearningRate(0.025);
-    w2vec.setMaxSentenceLength(5000);
-    w2vec.setMinCount(5);
-    w2vec.setNumIterations(1);
-    w2vec.setNumPartitions(1);
-    w2vec.setVectorSize(100);
-    w2vec.setWindowSize(5);
-    Word2VecModel w2vM=w2vec.fit(lemmas);
-    w2vM.save(JavaSparkContext.toSparkContext(sc),dataPath+".w2v");
+    // perform word2vec
+    Word2Vec w2vec=new Word2Vec()
+        .setLearningRate(0.025)
+        .setMaxSentenceLength(5000)
+        .setMinCount(5)
+        .setNumIterations(1)
+        .setNumPartitions(1)
+        .setVectorSize(100)
+        .setWindowSize(5);
+
+    // fit model and save to output file
+    Word2VecModel w2vM = w2vec.fit(lemmas);
+    w2vM.save(JavaSparkContext.toSparkContext(sc), "output/"+ inputPath.split("/")[1] + ".w2v");
   }
 }
