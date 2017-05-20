@@ -83,14 +83,16 @@ public class Cluster {
         JavaRDD<Integer> clusterIDs;
         switch (clusteringName) {
             case "KMeans":
+                // train model on dataset
                 KMeansModel kmeans =
                     KMeans.train(onlyVectors.rdd(), numClusters, numIterations);
-                clusterIDs = kmeans.predict(onlyVectors);
 
-                // compute kmeans objective function on training dataset
-                System.out.println("-------------> kmeans objective function = "
-                    + kmeans.computeCost(onlyVectors.rdd()));
-                System.out.println("-------------> see https://goo.gl/QnjpHo");
+                // save model to output and exit
+                kmeans.save(sc.sc(),
+                    "output/" + clusteringName +
+                    "_n_cluster_" + numClusters +
+                    "_n_iterat_" + numIterations +
+                    ".cm");
                 break;
 
             case "GaussianMixture":
@@ -98,38 +100,28 @@ public class Cluster {
                     new GaussianMixture()
                         .setK(numClusters)
                         .run(onlyVectors.rdd());
-                clusterIDs = gaussianMixture.predict(onlyVectors);
+                gaussianMixture.save(sc.sc(),
+                    "output/" + clusteringName +
+                    "_n_cluster_" + numClusters +
+                    "_n_iterat_" + numIterations +
+                    ".cm");
                 break;
 
             case "BisectingKMeans":
                 BisectingKMeansModel bisectingKmeans = new BisectingKMeans()
                     .setK(numClusters)
                     .run(onlyVectors.rdd());
-                clusterIDs = bisectingKmeans.predict(onlyVectors);
+                bisectingKmeans.save(sc.sc(),
+                    "output/" + clusteringName +
+                    "_n_cluster_" + numClusters +
+                    "_n_iterat_" + numIterations +
+                    ".cm");
+                break;
 
             default:
                 throw new IllegalArgumentException(
                     "Invalid clustering tecnique -> " + clusteringName);
         }
-
-        // create an RDD with (cluster_id, (wikipage_id, vector))
-        JavaPairRDD<Integer, Tuple2<Long, Vector>> completeDataset =
-            clusterIDs.zip(allWikiVector);
-
-        // map each row to a json string representation, as a general save / load
-        // format
-        JavaRDD<String> jsonDataset = completeDataset.map((tuple) -> {
-            return "{" +
-                    "\"id_cluster\": " + tuple._1() + "," +
-                    "\"id_wiki\": " + tuple._2()._1() + "," +
-                    "\"vector\": " + tuple._2()._2()
-                   + "}";
-        });
-
-        // collapse all parallel outputs to a single RDD (1) and save
-        // this is needed to have a single output file
-        jsonDataset.coalesce(1).saveAsTextFile(
-            "output/cluster_" + clusteringName + ".cr");
     }
 
 }
