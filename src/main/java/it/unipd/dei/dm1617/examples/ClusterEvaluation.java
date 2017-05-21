@@ -4,6 +4,7 @@ import it.unipd.dei.dm1617.*;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaPairRDD$;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.clustering.KMeansModel;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.Math;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  *
@@ -75,14 +77,38 @@ public class ClusterEvaluation {
 
         int vectorSize = onlyVectors.take(1).get(0).size(); // get the dimension of a single vector
 
+
+        System.out.println("Computing vectors domain..");
+
+        // compute the max and min values for every vectors component
+        Vector maxValues = onlyVectors.reduce((prev, n) -> {
+            double[] pa = prev.toArray();
+            double[] na = n.toArray();
+            double[] res = new double[vectorSize];
+            for (int i = 0; i < vectorSize; i++) {
+                res[i] = (pa[i] < na[i]) ? na[i] : pa[i];
+            }
+            return new DenseVector(res);
+        });
+        Vector minValues = onlyVectors.reduce((prev, n) -> {
+            double[] pa = prev.toArray();
+            double[] na = n.toArray();
+            double[] res = new double[vectorSize];
+            for (int i = 0; i < vectorSize; i++) {
+                res[i] = (pa[i] > na[i]) ? na[i] : pa[i];
+            }
+            return new DenseVector(res);
+        });
+
         System.out.println("Generating random vectors..");
+
         // generate a random set of vectors
         long sampleNumber = dataSample.count();
         ArrayList<Vector> randList = new ArrayList<>();
         for (int i = 0; i < sampleNumber; i++) {
             double[] v = new double[vectorSize];
             for (int j = 0; j < vectorSize; j++) {
-                v[j] = (Math.random()-0.5)*2;
+                v[j] = ThreadLocalRandom.current().nextDouble(minValues.apply(j), maxValues.apply(j));
             }
             randList.add(new DenseVector(v));
         }
@@ -109,6 +135,7 @@ public class ClusterEvaluation {
         });
 
         System.out.println("Computing Hopkins statistics..");
+
         double dataDistSum = dataDistances.reduce((accum, n) -> (accum + n));
         System.out.println("1/2 reduce done.");
         double randDistSum = randDistances.reduce((accum, n) -> (accum + n));
