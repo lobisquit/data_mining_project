@@ -2,6 +2,7 @@ package it.unipd.dei.dm1617.examples;
 
 import org.apache.hadoop.mapred.join.ArrayListBackedIterator;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.clustering.*;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -9,12 +10,17 @@ import org.apache.spark.api.java.JavaRDDLike;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
+import org.apache.spark.mllib.linalg.Vectors;
 
-import org.apache.spark.mllib.util.MLUtils;
 import scala.Tuple2;
 
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.io.File;
+import java.util.List;
+
+import static java.lang.System.exit;
+
 /**
  * @param to do
  */
@@ -25,14 +31,14 @@ public class SimpleSilhouetteCoefficient {
      */
     public static void main(String[] args){
         
-        int kStart = new Integer.parseInt(args[0]);
-        int kEnd = new Integer.parseInt(args[1]);
+        int kStart = Integer.parseInt(args[0]);
+        int kEnd = Integer.parseInt(args[1]);
 
-        // reading clustering tecnique name
         String dataset = "dataset/medium-sample.dat.wpv";
         String clusteringName = "KMeans";
-        //int numClusters = 50;
         int numIterations = 20;
+
+        ArrayList<Tuple2<Integer, Double>> results = new ArrayList<Tuple2<Integer, Double>>();
 
         // Spark setup
         // setMaster is needed to call the clustering (performed in Cluster.java) without conflicts
@@ -43,28 +49,89 @@ public class SimpleSilhouetteCoefficient {
         // mark the starting point of our subsequent messages
         System.out.println("Starting Simple Silhouette");
 
-        JavaRDD<Vector> articlesAsVectors = getArticlesAsVectors(dataset);
+        JavaRDD<Tuple2<Long, Vector>> articlesAsVectors = getArticlesAsVectors(sc, dataset);
         System.out.println("Articles representation loaded");
-
         
-        for(int i=kStart; i <= kEnd; i*=2){
+        for(Integer i= kStart; i <= kEnd; i*=2){
+
+            System.out.println("Computing kmeans with k="+i.toString());
 
             KMeansModel model = getKMeansModel(sc, dataset, clusteringName, i, numIterations);
 
             Vector[] centroids = model.clusterCenters();
 
-            JavaRDD<Integer> predictedClusters = model.predict(articlesAsVectors);
+            /*
+            List<Tuple2<Long, Vector>> centroids = new ArrayList();
+            for(long j=0; j < clusterCenters.length; j++) {
+                centroids.add(new Tuple2<Long, Vector>(j, clusterCenters[(int) j]));
+            }
+            // centroidsRDD contains (clusterId, centroidVector)
+            JavaRDD<Tuple2<Long, Vector>> centroidsRDD = sc.parallelize(centroids)
+                    .cache(); // it will be used in every worker
+            */
+            sc.broadcast(centroids);
+
+
+            JavaRDD<Integer> predictedClusters = model.predict(getOnlyVectors(articlesAsVectors));
+
+            JavaPairRDD<Integer, Tuple2<Long, Vector>> zipped = predictedClusters.zip(articlesAsVectors);
+
+            // pair: articleVector, clusterId
+            JavaPairRDD<Vector, Integer> articles = zipped.mapToPair(pair -> new Tuple2<>(pair._2._2, pair._1));
 
             // computeDistanceFromItsCentroid
-            //System.out.print("No");
+            JavaRDD<Double> simpleSilhoutteCoefficients = articles.map( pair -> {
 
-            //MLUtils.fastSquaredDistance(centroids[0], norm1, centroids[1], double norm2, 5);
+                double distanceFromItsCentroid = Double.POSITIVE_INFINITY;
+                double minDistanceFromOtherCentroids = Double.POSITIVE_INFINITY;
 
-            // computeMinDistanceFromOtherCentroids
-            
-            // calculateSimpleSilhouetteCoefficient
+                for(int j=0; j < centroids.length; j++){
 
-        }        
+                    double euclideanDistance = Vectors.sqdist(pair._1, centroids[j]);
+
+                    if(j == pair._2){ // its centroid
+                        distanceFromItsCentroid = euclideanDistance;
+                    }
+                    else{
+                        // keep track of the minimum
+                        if(minDistanceFromOtherCentroids > euclideanDistance){
+                            minDistanceFromOtherCentroids = euclideanDistance;
+                        }
+                    }
+                }
+
+                if(distanceFromItsCentroid == Double.POSITIVE_INFINITY ||
+                        minDistanceFromOtherCentroids == Double.POSITIVE_INFINITY){
+                    // something bad happened
+                    // e.g. there is no centroid for cluster of this point
+                    // or there are no other clusters centroids
+                    throw new Exception("Bad! Either there is no centroid for this cluster or there are no other clusters (k=1 maybe?)");
+                }
+
+                // compute the Simple Silhouette Coefficient
+                double simpleSilhouetteCoefficient =
+                        (minDistanceFromOtherCentroids - distanceFromItsCentroid) / minDistanceFromOtherCentroids;
+
+                return simpleSilhouetteCoefficient;
+            } );
+
+            Double sumCoefficients = simpleSilhoutteCoefficients.reduce(
+                    (v1, v2) -> {
+                        return v1 + v2;
+                    }
+            );
+            Double SSC = sumCoefficients / new Long(simpleSilhoutteCoefficients.count()).doubleValue();
+
+            results.add(new Tuple2<>(i, SSC));
+
+            System.out.println("Simple Silhouette Coefficient: " + SSC);
+            System.out.println("Sum Coefficient: " + sumCoefficients);
+
+
+        }
+
+        
+        System.out.println("Done");
     }
 
     public static KMeansModel getKMeansModel(JavaSparkContext sc, String dataset, String clusteringName, int numClusters, int numIterations){
@@ -88,7 +155,7 @@ public class SimpleSilhouetteCoefficient {
         return kMeansModel;
     }
 
-    public static JavaRDD<Vector> getArticlesAsVectors(String dataset){
+    public static JavaRDD<Tuple2<Long, Vector>> getArticlesAsVectors(JavaSparkContext sc, String dataset){
 
         String wpvPath = dataset;
         if(!wpvPath.endsWith("/")){
@@ -108,16 +175,20 @@ public class SimpleSilhouetteCoefficient {
 
         // merge all chunks in  a single RDD
         JavaRDD<Tuple2<Long, Vector>> allWikiVector = wikiVectors.remove(0);
-        for(JavaRDD<Tuple2<Long, Vector>> app:wikiVectors){
+        for(JavaRDD<Tuple2<Long, Vector>> app:wikiVectors) {
             allWikiVector = allWikiVector.union(app);
         }
+        return allWikiVector;
+    }
 
+
+
+    public static JavaRDD<Vector> getOnlyVectors(JavaRDD<Tuple2<Long, Vector>> wikiVectors){
         // remove id, since clustering requires RDD of Vectors
-        JavaRDD<Vector> articlesAsVectors = allWikiVector.map(elem -> {
+        JavaRDD<Vector> onlyVectors = wikiVectors.map(elem -> {
             return elem._2();
         });
-
-        return articlesAsVectors;
+        return onlyVectors;
     }
 
 }
