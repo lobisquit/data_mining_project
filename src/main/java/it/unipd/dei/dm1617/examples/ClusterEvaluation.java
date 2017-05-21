@@ -1,43 +1,26 @@
 package it.unipd.dei.dm1617.examples;
 
-import it.unipd.dei.dm1617.*;
 import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaPairRDD$;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.clustering.KMeansModel;
-import org.apache.spark.mllib.feature.IDF;
-import org.apache.spark.mllib.feature.Word2VecModel;
 import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
 import scala.Tuple2;
-import org.apache.spark.mllib.feature.Word2Vec;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.types.*;
-import org.apache.spark.sql.SparkSession;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.List;
-import java.lang.Math;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- *
+ * Class to compute the Hopkins statistics.
+ * The command line arguments are:
+ * args[0] : path of the .wv files
+ * args[1] : fraction of the dataset used as sample for the Hopkins statistic
  */
 public class ClusterEvaluation {
-
-    /** Fraction of the dataset used as sample for the Hopkins statistic */
-    static final double SAMPLE_SIZE = 0.1;
 
     public static void main(String[] args) {
         String path = args[0];
@@ -45,13 +28,15 @@ public class ClusterEvaluation {
             path = path + "/";
         }
 
+        double sampleFrac = Double.parseDouble(args[1]);
+
         // Usual setup
         SparkConf conf = new SparkConf(true).setAppName("Tf-Ifd transformation");
         JavaSparkContext sc = new JavaSparkContext(conf);
         sc.setLogLevel("ERROR");
 
-        //load file
-        System.out.println("load files");
+        // Load file
+        System.out.println("Loading files..");
         ArrayList<JavaRDD<Tuple2<Long, Vector>>> wikiVectors = new ArrayList();
         File folder = new File(path);
         File[] listOfFiles = folder.listFiles();
@@ -68,11 +53,9 @@ public class ClusterEvaluation {
             allWikiVector = allWikiVector.union(app);
         }
 
-        JavaRDD<Vector> onlyVectors = allWikiVector.map(elem->{
-            return elem._2();
-        });
+        JavaRDD<Vector> onlyVectors = allWikiVector.map(elem -> elem._2());
 
-        JavaRDD<Vector> dataSample = onlyVectors.sample(false, SAMPLE_SIZE);
+        JavaRDD<Vector> dataSample = onlyVectors.sample(false, sampleFrac);
         JavaRDD<Vector> negativeDataSample = onlyVectors.subtract(dataSample);
 
         int vectorSize = onlyVectors.take(1).get(0).size(); // get the dimension of a single vector
@@ -143,6 +126,5 @@ public class ClusterEvaluation {
         double hopkins = dataDistSum / (dataDistSum+randDistSum);
         System.out.println("dataDistSum = "+dataDistSum+", randDistSum = "+randDistSum);
         System.out.println("Hopkins statistic: "+hopkins);
-        return;
     }
 }
