@@ -1,12 +1,8 @@
 package it.unipd.dei.dm1617.examples;
 
-import org.apache.hadoop.mapred.join.ArrayListBackedIterator;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.mllib.clustering.*;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaRDDLike;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
@@ -17,9 +13,6 @@ import scala.Tuple2;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.io.File;
-import java.util.List;
-
-import static java.lang.System.exit;
 
 /**
  * @param to do
@@ -34,6 +27,7 @@ public class SimpleSilhouetteCoefficient {
         int kStart = Integer.parseInt(args[0]);
         int kEnd = Integer.parseInt(args[1]);
 
+        // set some parameters
         String dataset = "dataset/medium-sample.dat.wpv";
         String clusteringName = "KMeans";
         int numIterations = 20;
@@ -52,7 +46,7 @@ public class SimpleSilhouetteCoefficient {
         JavaRDD<Tuple2<Long, Vector>> articlesAsVectors = getArticlesAsVectors(sc, dataset);
         System.out.println("Articles representation loaded");
         
-        for(Integer i= kStart; i <= kEnd; i*=2){
+        for(Integer i= kStart; i <= kEnd; i++){
 
             System.out.println("Computing kmeans with k="+i.toString());
 
@@ -130,7 +124,9 @@ public class SimpleSilhouetteCoefficient {
 
         }
 
-        
+        System.out.println("Saving to output file");
+        // saves: k of clusters, simple silhouette coefficient
+        saveToFileAsCSV(results);
         System.out.println("Done");
     }
 
@@ -181,7 +177,22 @@ public class SimpleSilhouetteCoefficient {
         return allWikiVector;
     }
 
+    public static void saveToFileAsCSV(ArrayList<Tuple2<Integer, Double>> tuples){
 
+        try{
+            FileWriter file = new FileWriter("./output/kSimpleSilhouette.csv");
+
+            for (Tuple2<Integer, Double> tup : tuples) {
+                file.write("" + tup._1 + ", " + tup._2 + "\n");
+            }
+            file.close();
+        }
+        catch(Exception e){
+            System.out.println("Failed to write to disk");
+            System.out.println(e);
+            System.exit(1);
+        }
+    }
 
     public static JavaRDD<Vector> getOnlyVectors(JavaRDD<Tuple2<Long, Vector>> wikiVectors){
         // remove id, since clustering requires RDD of Vectors
