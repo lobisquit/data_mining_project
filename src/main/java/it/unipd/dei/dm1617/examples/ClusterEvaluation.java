@@ -10,18 +10,23 @@ import org.apache.spark.mllib.linalg.Vectors;
 import scala.Tuple2;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Class to compute the Hopkins statistics.
- * The command line arguments are:
- * args[0] : path of the .wv files
- * args[1] : fraction of the dataset used as sample for the Hopkins statistic
  */
 public class ClusterEvaluation {
 
+    /**
+     * @param args
+     *  args[0] : path of the .wv files
+     *  args[1] : fraction of the dataset used as sample for the Hopkins statistic
+     *  args[2] : filename for the results (for example 'hopkins.csv')
+     */
     public static void main(String[] args) {
         String path = args[0];
         if (!path.endsWith("/")) {
@@ -29,6 +34,8 @@ public class ClusterEvaluation {
         }
 
         double sampleFrac = Double.parseDouble(args[1]);
+
+        String outputFile = args[2];
 
         // Usual setup
         SparkConf conf = new SparkConf(true).setAppName("Tf-Ifd transformation");
@@ -126,5 +133,38 @@ public class ClusterEvaluation {
         double hopkins = dataDistSum / (dataDistSum+randDistSum);
         System.out.println("dataDistSum = "+dataDistSum+", randDistSum = "+randDistSum);
         System.out.println("Hopkins statistic: "+hopkins);
+        saveToFileAsCSV(onlyVectors.count(),sampleFrac,hopkins,outputFile);
+    }
+
+    /**
+     * Writes the computation results in a csv file
+     *
+     * @param numVectors Number of vectors in the dataset
+     * @param frac Fraction of the dataset used for the sample
+     * @param hopkins Hopkins statistics estimated
+     * @param fileName Filename for the results
+     */
+    private static void saveToFileAsCSV(long numVectors, double frac, double hopkins, String fileName){
+        final String outputPath = "./output/";
+        if (!fileName.endsWith(".csv")) {
+            fileName = fileName.concat(".csv");
+        }
+        File directory = new File(outputPath);
+        if (! directory.exists()){
+            directory.mkdir();
+        }
+        File file = new File(outputPath + "/" + fileName);
+        try{
+            FileWriter filew = new FileWriter(file,true);
+            if (!file.exists()) {
+                filew.write("Dataset size,Sample fraction,Hopkins Statistics\n");
+            }
+            filew.write(numVectors + "," +frac + "," + hopkins +"\n");
+            filew.close();
+        }
+        catch(IOException e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 }
