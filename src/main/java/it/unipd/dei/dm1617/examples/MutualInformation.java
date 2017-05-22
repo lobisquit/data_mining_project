@@ -23,7 +23,11 @@ import scala.Tuple2;
 import java.util.ArrayList;
 import java.io.File;
 
-public class SupervisedClusterEvaluation {
+/**
+* Normalized Mutual Information is a measure of how informative is clustering
+* against classes
+*/
+public class MutualInformation {
     public static void main(String[] args){
         // usual Spark setup
         SparkConf conf = new SparkConf(true).setAppName("Clustering");
