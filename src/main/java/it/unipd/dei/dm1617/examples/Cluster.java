@@ -118,6 +118,19 @@ public class Cluster {
                     ".cm");
                 break;
 
+            case "LDA":
+                LDAModel LDA = new LDA()
+                    .setK(numClusters)
+                    .setMaxIterations(numIterations)
+                    // Converting the JavaRDD<Tuple2> to a JavaPairRDD because training method require it
+                    .run(JavaPairRDD.fromJavaRDD(allWikiVector));
+                LDA.save(sc.sc(),
+                    "output/" + clusteringName +
+                    "_n_cluster_" + numClusters +
+                    "_n_iterat_" + numIterations +
+                    ".cm");
+                break;
+
             default:
                 throw new IllegalArgumentException(
                     "Invalid clustering tecnique -> " + clusteringName);
