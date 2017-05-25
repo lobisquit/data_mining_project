@@ -185,31 +185,38 @@ public class MutualInformation {
                 return new Tuple2<>(key, fraction);
               });
 
-          // increment model score considering each category separately
-          double modelScore = 0;
-          for (String category : categoriesSet) {
-            double mutualInformation = categoriesClusterFractions
-              // select only points of current category
-              .filter((row) -> row._1()._2().equals(category))
-              // compute term in sum over clusters to obtain I(Ω, C)
-              .map((row) -> {
-                int clusterID = row._1()._1();
-                double Pwc = row._2();
+          double modelScore = categoriesClusterFractions
+            // compute term in NMI that involves a single category
+            .mapToPair((row) -> {
+              // extract tuple elements
+              int clusterID = row._1()._1();
+              String cat = row._1()._2();
+              double Pwc = row._2();
 
-                double Pw = clusterFractions.get(clusterID);
-                double Pc = categoriesFractions.get(category);
+              // retrieve precomputed probabilities
+              double Pw = clusterFractions.get(clusterID);
+              double Pc = categoriesFractions.get(cat);
 
+              double clusterCategoryScore =
                 // sum over class and its complementary
-                return Pwc * Math.log(Pwc / (Pc * Pw)) / Math.log(2) +
-                (Pw - Pwc) * Math.log((Pw - Pwc) / (Pw * (1 - Pc))) / Math.log(2);
-              })
-              .reduce((x, y) -> x + y);
+                (Pwc * Math.log(Pwc / (Pc * Pw)) +
+                (Pw - Pwc) * Math.log((Pw - Pwc) / (Pw * (1 - Pc)))) / Math.log(2);
 
-            // normalize score
-            modelScore += 2 * mutualInformation /
-              (clusteringEntropy + categoriesEntropies.get(category));
-          }
-          modelScore = modelScore / categoriesSet.size();
+              return new Tuple2<>(cat, clusterCategoryScore);
+            })
+            // sum over all clusters, to obtain each category score
+            // (i.e. NMI numerator for each category)
+            .reduceByKey((x, y) -> x + y)
+            // normalize each category term
+            .map((row) -> {
+              String cat = row._1();
+              double score = row._2();
+
+              // normalize to total entropy (clustering + )
+              return 2 * score / (clusteringEntropy + categoriesEntropies.get(cat));
+            })
+            // sum across all categories
+            .reduce((x, y) -> x + y);
 
           // System.out.println(categoriesClusterFractions
           //   .filter((point) -> point._2() > 1/numDocuments)
