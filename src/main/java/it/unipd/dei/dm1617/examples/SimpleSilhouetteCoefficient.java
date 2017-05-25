@@ -26,17 +26,24 @@ public class SimpleSilhouetteCoefficient {
         
         int kStart = Integer.parseInt(args[0]);
         int kEnd = Integer.parseInt(args[1]);
+        int kStep = Integer.parseInt(args[2]);
 
+        Integer[] listOfModels = {700, 1111, 1763, 2800, 4444, 7055, 11200, 17778, 28222, 44800,
+                                989, 1571, 2494, 3959, 6285, 9978, 15839, 25143, 39912, 63356};
+        kStart = 0;
+        kEnd = listOfModels.length - 1;
+        kStep = 1;
+        
         // set some parameters
         String dataset = "dataset/medium-sample.dat.wpv";
         String clusteringName = "KMeans";
-        int numIterations = 20;
+        int numIterations = 30;
 
         ArrayList<Tuple2<Integer, Double>> results = new ArrayList<Tuple2<Integer, Double>>();
 
         // Spark setup
         // setMaster is needed to call the clustering (performed in Cluster.java) without conflicts
-        SparkConf conf = new SparkConf(false).setAppName("SimplelSilhouetteCoefficient").setMaster("local[2]");
+        SparkConf conf = new SparkConf(false).setAppName("SimplelSilhouetteCoefficient").setMaster("local[4]");
         JavaSparkContext sc = new JavaSparkContext(conf);
         sc.setLogLevel("ERROR");
 
@@ -46,25 +53,15 @@ public class SimpleSilhouetteCoefficient {
         JavaRDD<Tuple2<Long, Vector>> articlesAsVectors = getArticlesAsVectors(sc, dataset);
         System.out.println("Articles representation loaded");
         
-        for(Integer i= kStart; i <= kEnd; i++){
+        for(Integer i= kStart; i <= kEnd; i += kStep){
 
-            System.out.println("Computing kmeans with k="+i.toString());
+            System.out.println("Computing kmeans with k="+listOfModels[i].toString()); // i
 
-            KMeansModel model = getKMeansModel(sc, dataset, clusteringName, i, numIterations);
+            KMeansModel model = getKMeansModel(sc, dataset, clusteringName, listOfModels[i], numIterations); // i
 
             Vector[] centroids = model.clusterCenters();
 
-            /*
-            List<Tuple2<Long, Vector>> centroids = new ArrayList();
-            for(long j=0; j < clusterCenters.length; j++) {
-                centroids.add(new Tuple2<Long, Vector>(j, clusterCenters[(int) j]));
-            }
-            // centroidsRDD contains (clusterId, centroidVector)
-            JavaRDD<Tuple2<Long, Vector>> centroidsRDD = sc.parallelize(centroids)
-                    .cache(); // it will be used in every worker
-            */
             sc.broadcast(centroids);
-
 
             JavaRDD<Integer> predictedClusters = model.predict(getOnlyVectors(articlesAsVectors));
 
@@ -114,13 +111,11 @@ public class SimpleSilhouetteCoefficient {
                         return v1 + v2;
                     }
             );
-            Double SSC = sumCoefficients / new Long(simpleSilhoutteCoefficients.count()).doubleValue();
+            Double ssc = sumCoefficients / new Long(simpleSilhoutteCoefficients.count()).doubleValue();
 
-            results.add(new Tuple2<>(i, SSC));
+            results.add(new Tuple2<>(listOfModels[i], ssc)); // i
 
-            System.out.println("Simple Silhouette Coefficient: " + SSC);
-            System.out.println("Sum Coefficient: " + sumCoefficients);
-
+            System.out.println("Simple Silhouette Coefficient: " + ssc + " with K="+listOfModels[i].toString()); // i
 
         }
 
@@ -144,6 +139,8 @@ public class SimpleSilhouetteCoefficient {
             System.out.println("Calculating model...");
             Cluster.doClustering(sc, dataset, clusteringName, numClusters, numIterations);
         }
+
+        System.out.println("Model computed");
 
         // load kmeansmodel representation
         KMeansModel kMeansModel = KMeansModel.load(sc.sc(), modelToLoad);
