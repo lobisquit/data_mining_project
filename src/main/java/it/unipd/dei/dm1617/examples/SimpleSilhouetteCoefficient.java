@@ -28,8 +28,7 @@ public class SimpleSilhouetteCoefficient {
         int kEnd = Integer.parseInt(args[1]);
         int kStep = Integer.parseInt(args[2]);
 
-        Integer[] listOfModels = {700, 1111, 1763, 2800, 4444, 7055, 11200, 17778, 28222, 44800,
-                                989, 1571, 2494, 3959, 6285, 9978, 15839, 25143, 39912, 63356};
+        Integer[] listOfModels = {700, 989, 1111, 1571, 1763, 2494, 2800, 3959, 4444, 6285, 7055, 9978, 11200, 15839, 17778, 25143, 28222, 39912, 44800, 63356};
         kStart = 0;
         kEnd = listOfModels.length - 1;
         kStep = 1;
@@ -103,6 +102,9 @@ public class SimpleSilhouetteCoefficient {
                 double simpleSilhouetteCoefficient =
                         (minDistanceFromOtherCentroids - distanceFromItsCentroid) / minDistanceFromOtherCentroids;
 
+                if(distanceFromItsCentroid == 0.0)
+                    return 0.0;
+
                 return simpleSilhouetteCoefficient;
             } );
 
@@ -111,11 +113,16 @@ public class SimpleSilhouetteCoefficient {
                         return v1 + v2;
                     }
             );
-            Double ssc = sumCoefficients / new Long(simpleSilhoutteCoefficients.count()).doubleValue();
+            // Double ssc = sumCoefficients / new Long(simpleSilhoutteCoefficients.count()).doubleValue();
+            Long totalCount = simpleSilhoutteCoefficients.filter(n -> {
+                return n != 0.0;
+            }).count();
+            Double ssc = sumCoefficients / totalCount.doubleValue();
 
             results.add(new Tuple2<>(listOfModels[i], ssc)); // i
 
             System.out.println("Simple Silhouette Coefficient: " + ssc + " with K="+listOfModels[i].toString()); // i
+            System.out.println("Sum: " + sumCoefficients + "totalCount: " + totalCount);
 
         }
 
