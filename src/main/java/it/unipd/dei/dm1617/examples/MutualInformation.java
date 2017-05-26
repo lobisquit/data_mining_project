@@ -54,29 +54,26 @@ public class MutualInformation {
           .map((page) -> Arrays.asList(page.getCategories()));
 
         // load vector representation of each article
-        JavaRDD<Tuple2<Long, Vector>> wikiVectors = sc.objectFile(wikiVectorPath);
+        JavaRDD<Tuple2<Long, Vector>> wikiVectorsDump = sc.objectFile(wikiVectorPath);
+        JavaRDD<Vector> wikiVectors = wikiVectorsDump.map((row) -> row._2());
 
-        // count number of articles
-        double numDocuments = (double) wikiVectors.count();
-
-        // // merge everything in a proper RDD
-        // JavaPairRDD<Vector, List<String>> vectorCategories = wikiVectors
-        //   // retrieve only vector
-        //   .map((tuple) -> tuple._2()).coalesce(1)
-        //   // zip with list of categories
-        //   .zip(categories.coalesce(1));
+        /* -------------> preprocess categories, excluding ones with too few articles */
 
         // obtain number of occurences of each category, i.e. P(c) in NMI formula
-        JavaPairRDD<String, Double> categoriesFractionsRDD =
-          JavaPairRDD.fromJavaRDD(pages
-            // obtain all categories in a single RDD
-            .flatMap((page) -> Arrays.asList(page.getCategories()).iterator())
-            // set every row frequency to 1
-            .map((category) -> new Tuple2<>(category, 1)))
+        JavaPairRDD<String, Integer> categoriesCountsRDD = pages
+          // obtain all categories in a single RDD
+          .flatMap((page) -> Arrays.asList(page.getCategories()).iterator())
+          // set every row frequency to 1
+          .mapToPair((category) -> new Tuple2<>(category, 1))
           // convert to (key: value) RDD (JavaPairRDD) and sum occurences
           .reduceByKey((x, y) -> x + y)
           // remove too unfrequent categories
           .filter((point) -> point._2() > 1)
+          .cache();
+
+        long numDocuments = categoriesCountsRDD.count();
+
+        JavaPairRDD<String, Double> categoriesFractionsRDD = categoriesCountsRDD
           // normalize each count with total number of documents
           .mapToPair((row) ->
             new Tuple2<String, Double>(
@@ -88,8 +85,7 @@ public class MutualInformation {
         Map<String, Double> categoriesFractions = categoriesFractionsRDD.collectAsMap();
         sc.broadcast(categoriesFractions);
 
-        // compute entropy of indicator random variables corresponding  to each
-        // category
+        // compute entropy of indicator random variables corresponding to each category
         Map<String, Double> categoriesEntropies = categoriesFractionsRDD
           .mapToPair((row) -> {
             double probability = row._2();
@@ -99,13 +95,37 @@ public class MutualInformation {
           }).collectAsMap();
         sc.broadcast(categoriesEntropies);
 
-        // create a set of all categories in the various articles
+        // retrieve a list of all categories in dataset
         List<String> categoriesSet = categoriesFractionsRDD
-          // retrieve keys of categoriesFractions RDD
-          .map((point) -> point._1())
+          .map((row) -> row._1())
           .collect();
+        sc.broadcast(categoriesSet);
 
-        // create a collection with all models paths
+        /* ----------> filter out too unfrequent categories */
+
+        // create dataset with tuples (categories, wiki vector)
+        JavaPairRDD<List<String>, Vector> categoriesVectors = categories.coalesce(1)
+          .zip(wikiVectors.coalesce(1))
+          // removed previously filtered categories
+          .mapToPair((row) -> {
+            List<String> cats = row._1();
+            Vector vector = row._2();
+
+            List<String> filteredCategories = new ArrayList();
+            for (String cat : cats) {
+              if (categoriesSet.contains(cat)) {
+                filteredCategories.add(cat);
+              }
+            }
+
+            return new Tuple2<>(filteredCategories, vector);
+          })
+          // keep only vectors of articles with more than 0 categories
+          .filter((row) -> !row._1().isEmpty())
+          .cache();
+
+        /* ----------> retrieve model paths from directory */
+
         File modelsFolder = new File("output/");
         List<String> modelPaths = new ArrayList();
         for (File modelPath : modelsFolder.listFiles()) {
@@ -125,8 +145,10 @@ public class MutualInformation {
         for (String modelPath : modelPaths) {
           // compute clusterID of each input wikipage
           KMeansModel model = KMeansModel.load(sc.sc(), modelPath);
+
           JavaRDD<Integer> clusterIDs = model.predict(
-            wikiVectors.map((wikiVector) -> wikiVector._2()));
+            // exctract filtered vectors
+            categoriesVectors.map((row) -> row._2()));
 
           /* ----------> compute clustering probabilities, i.e. P(w) */
 
@@ -195,6 +217,8 @@ public class MutualInformation {
 
               // retrieve precomputed probabilities
               double Pw = clusterFractions.get(clusterID);
+
+              /* what to do if category is not present */
               double Pc = categoriesFractions.get(cat);
 
               double clusterCategoryScore =
@@ -221,7 +245,7 @@ public class MutualInformation {
           // System.out.println(categoriesClusterFractions
           //   .filter((point) -> point._2() > 1/numDocuments)
           //   .take(10));
-          System.out.println(modelScore);
+          System.out.println("Yeah! score = " + modelScore);
           System.exit(1);
         }
 
