@@ -11,12 +11,16 @@ import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.sql.SparkSession;
+import scala.Float;
 import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.HashMap;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class TfidfCategories {
 
@@ -32,7 +36,8 @@ public class TfidfCategories {
         // Load dataset of wikipedia pages
         JavaRDD<WikiPage> pages = InputOutput.read(sc, dataPath);
 
-        //get all categories in a file
+        System.err.println("load categories");
+        //get all categories in a List
         JavaRDD<List<String>> categories = pages.map(elem->{
             List<String> ret = new ArrayList<String>();
             for(String str:elem.getCategories()){
@@ -40,18 +45,35 @@ public class TfidfCategories {
             }
             return ret;
         });
-
         List<List<String>> articlesCategories = categories.collect();
 
-
-        TfidfCategories tfidf = new TfidfCategories();
-        long millis = System.currentTimeMillis();
-        for(List<String> articles:articlesCategories){
-            for(String category:articles){
-                System.out.println(category+" "+tfidf.tfIdf(articles, articlesCategories, category));
+        //collect categories in one only List
+        System.err.println("generate categoriesUnique");
+        int cont = 0;
+        List<String> categoriesUnique=new ArrayList<String>();
+        for(List<String> art:articlesCategories){
+            for(String cat:art){
+                if(!categoriesUnique.contains(cat)){
+                    cont++;
+                    categoriesUnique.add(cat);
+                    if(cont%1000==0)
+                        System.err.println("-> "+cont);
+                }
             }
         }
 
+        System.err.println("caclulate idf foreach categories");
+        //calculate idf foreach categories and save the score in a file
+        TfidfCategories calculator = new TfidfCategories();
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("output/categoriesRanking.csv"))) {
+            cont=0;
+            for(String cat:categoriesUnique) {
+                System.err.println(" -> "+(((float)cont)/categoriesUnique.size()*100)+" %");
+                bw.write(cat+","+calculator.idf(articlesCategories, cat)+"\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

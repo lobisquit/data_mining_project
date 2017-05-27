@@ -53,6 +53,7 @@ def main_class(class_name, default_path='it.unipd.dei.dm1617.examples.'):
 
 if __name__ == '__main__':
 	# parse command line arguments into cmd_args object
+	exec_command('clear')
 	parser = argparse.ArgumentParser(description='Manage Spark runs')
 
 	parser.add_argument('arguments',
