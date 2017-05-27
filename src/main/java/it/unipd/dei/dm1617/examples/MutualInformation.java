@@ -55,7 +55,9 @@ public class MutualInformation {
 
         // load vector representation of each article
         JavaRDD<Tuple2<Long, Vector>> wikiVectorsDump = sc.objectFile(wikiVectorPath);
-        JavaRDD<Vector> wikiVectors = wikiVectorsDump.map((row) -> row._2());
+        JavaRDD<Vector> wikiVectors = wikiVectorsDump
+          .map((row) -> row._2())
+          .cache();
 
         /* -------------> preprocess categories, excluding ones with too few articles */
 
@@ -71,33 +73,8 @@ public class MutualInformation {
           .filter((point) -> point._2() > 1)
           .cache();
 
-        // number of documents is computed after category filtering
-        long numDocuments = categoriesCountsRDD.count();
-
-        JavaPairRDD<String, Double> categoriesFractionsRDD = categoriesCountsRDD
-          // normalize each count with total number of documents
-          .mapToPair((row) ->
-            new Tuple2<String, Double>(
-              row._1(),
-              row._2().doubleValue() / numDocuments))
-          .cache();
-
-        // create map (category, frequency) and broadcast it to workers
-        Map<String, Double> categoriesFractions = categoriesFractionsRDD.collectAsMap();
-        sc.broadcast(categoriesFractions);
-
-        // compute entropy of indicator random variables corresponding to each category
-        Map<String, Double> categoriesEntropies = categoriesFractionsRDD
-          .mapToPair((row) -> {
-            double probability = row._2();
-            return new Tuple2<>(
-              row._1(),
-              - probability * Math.log(probability) / Math.log(2));
-          }).collectAsMap();
-        sc.broadcast(categoriesEntropies);
-
         // retrieve a list of all categories in dataset
-        List<String> categoriesSet = categoriesFractionsRDD
+        List<String> categoriesSet = categoriesCountsRDD
           .map((row) -> row._1())
           .collect();
         sc.broadcast(categoriesSet);
@@ -125,6 +102,33 @@ public class MutualInformation {
           .filter((row) -> !row._1().isEmpty())
           .cache();
 
+        // number of documents is computed after category filtering
+        double numDocuments = (double) categoriesVectors.count();
+
+        /* -------------> compute fractions, based on number of documents and
+                          the fact that each document has only one category */
+        JavaPairRDD<String, Double> categoriesFractionsRDD = categoriesCountsRDD
+          // normalize each count with total number of documents
+          .mapToPair((row) ->
+            new Tuple2<String, Double>(
+              row._1(),
+              row._2().doubleValue() / numDocuments))
+          .cache();
+
+        // create map (category, frequency) and broadcast it to workers
+        Map<String, Double> categoriesFractions = categoriesFractionsRDD.collectAsMap();
+        sc.broadcast(categoriesFractions);
+
+        // compute entropy of indicator random variables corresponding to each category
+        Map<String, Double> categoriesEntropies = categoriesFractionsRDD
+          .mapToPair((row) -> {
+            double probability = row._2();
+            return new Tuple2<>(
+              row._1(),
+              - probability * Math.log(probability) / Math.log(2));
+          }).collectAsMap();
+        sc.broadcast(categoriesEntropies);
+
         /* ----------> retrieve model paths from directory */
 
         File modelsFolder = new File("output/");
@@ -147,11 +151,14 @@ public class MutualInformation {
 
         // repeat procedure for each model
         for (String modelPath : modelPaths) {
+          if (!modelPath.equals("output/KMeans_n_cluster_15839_n_iterat_30.cm")) {
+            continue;
+          }
           // compute clusterID of each input wikipage
           KMeansModel model = KMeansModel.load(sc.sc(), modelPath);
 
           JavaRDD<Integer> clusterIDs = model.predict(
-            // exctract filtered vectors
+            // predict cluster of filtered vectors
             categoriesVectors.map((row) -> row._2()));
 
           /* ----------> compute clustering probabilities, i.e. P(w) */
@@ -167,10 +174,12 @@ public class MutualInformation {
                 row._2().doubleValue() / numDocuments))
             .cache();
 
-          // values of P(w) are broadcasted and clustering entropy Hw is precomputed
+          // values of P(w) are broadcasted
           Map<Integer, Double> clusterFractions = clusterFractionsRDD.collectAsMap();
           sc.broadcast(clusterFractions);
 
+          // compute entropy Hw of current cluster (since it is a double there is
+          // no need to broadcast it)
           double clusteringEntropy = clusterFractionsRDD
             .map((row) -> {
               double probability = row._2();
@@ -182,10 +191,12 @@ public class MutualInformation {
 
           // create a RDD with (clusterID, categories)
           JavaPairRDD<Integer, List<String>> categoriesID = clusterIDs.coalesce(1)
-            .zip(categoriesVectors.map((row) -> row._1()).coalesce(1))
+            .zip(
+              // extract categories from (categories, vector) RDD
+              categoriesVectors.map((row) -> row._1()).coalesce(1))
             .cache();
 
-          // create a RDD with (clustedID, single category)
+          // create a RDD with (clusterID, single category)
           JavaPairRDD<Integer, String> categoryIDcouples = categoriesID
             .flatMap((point) -> {
                 // create a collections of all tuples (clusterID, category)
@@ -198,7 +209,7 @@ public class MutualInformation {
             // needed to create a JavaPairRDD
             .mapToPair((row) -> row);
 
-          // count couples (clusterID, category), i.e. P(w ∪ C) probabilities
+          // count couples (clusterID, category), i.e. P(w or C) probabilities
           JavaPairRDD<Tuple2<Integer, String>, Double> categoriesClusterFractions =
             categoryIDcouples
             // map tuples to key, value tuple ( (clusterID, category) , 1)
@@ -227,10 +238,22 @@ public class MutualInformation {
               /* what to do if category is not present */
               double Pc = categoriesFractions.get(cat);
 
+              if (Pc == Pwc) {
+                System.out.println(
+                  "\nclusterID= " + clusterID +
+                  "\ncat= " + cat +
+                  "\nPwc= " + Pwc);
+
+                System.out.println(
+                  "\nPwc= " + Pwc +
+                  "\nPw=  " + Pw +
+                  "\nPc=  " + Pc);
+
+                System.out.println("------------------------");
+              }
               // sum over class and its complementary, to find
               // term in sum regarding current w and c
               double clusterCategoryScore;
-
               // deal with single cluster containing all memebers of a category
               if (Pw - Pwc == 0) {
                 clusterCategoryScore =
@@ -244,6 +267,12 @@ public class MutualInformation {
                   ) / Math.log(2);
               }
 
+              if (Pwc > Pw) {
+                System.out.println(
+                  "\nPwc= " + Pwc +
+                  "\nPw=  " + Pw +
+                  "\nPc=  " + Pc);
+              }
               return new Tuple2<>(cat, clusterCategoryScore);
             })
             // sum over all clusters, to obtain each category score
