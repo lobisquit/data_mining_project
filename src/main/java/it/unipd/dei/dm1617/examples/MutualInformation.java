@@ -6,15 +6,10 @@ import java.util.Map;
 import java.util.ArrayList;
 import it.unipd.dei.dm1617.WikiPage;
 import it.unipd.dei.dm1617.InputOutput;
-import it.unipd.dei.dm1617.WikiV;
-import org.apache.hadoop.mapred.join.ArrayListBackedIterator;
 import org.apache.spark.SparkConf;
-import org.apache.spark.mllib.clustering.*;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaRDDLike;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.mllib.clustering.KMeans;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
 
@@ -130,4 +125,12 @@ public class MutualInformation {
         System.out.println("" + Hcw);
     }
 
+    /**
+     * Created by massimo on 25/05/17.
+     */
+    public static class Tfidf {
+        public static void main(String[] args){
+
+        }
+    }
 }

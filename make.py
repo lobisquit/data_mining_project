@@ -32,7 +32,7 @@ def exec_command(command, **env_variables):
 	if isinstance(command, Path):
 		command = str(command)
 
-	print('------> ', command)
+	#print('------> ', command)
 	subprocess.call(command,
 		shell=True,
 		# load all environment variable and add new wanted ones
