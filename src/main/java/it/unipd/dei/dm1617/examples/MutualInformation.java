@@ -232,10 +232,10 @@ public class MutualInformation {
               if (Pw - Pwc == 0) {
                 clusterCategoryScore =
                 // note that a 0-probability event has entropy 0
-                - (Pwc * Math.log(Pwc / (Pc * Pw)) + 0) / Math.log(2);
+               (Pwc * Math.log(Pwc / (Pc * Pw)) + 0) / Math.log(2);
               }
               else {
-                clusterCategoryScore = - (
+                clusterCategoryScore = (
                     Pwc * Math.log(Pwc / (Pc * Pw)) +
                     (Pw - Pwc) * Math.log((Pw - Pwc) / (Pw * (1 - Pc)))
                   ) / Math.log(2);
@@ -262,7 +262,6 @@ public class MutualInformation {
           //   .filter((point) -> point._2() > 1/numDocuments)
           //   .take(10));
           System.out.println("Model score = " + modelScore);
-          System.exit(1);
         }
 
     }
