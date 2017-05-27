@@ -19,7 +19,7 @@ import scala.Tuple2;
 import scala.Tuple3;
 
 import java.util.ArrayList;
-import java.io.File;
+import java.io.*;
 
 /**
 * Normalized Mutual Information is a measure of how informative is clustering
@@ -142,6 +142,9 @@ public class MutualInformation {
         }
         Collections.sort(modelPaths);
 
+        // save results here for each model
+        List<String> results = new ArrayList();
+
         // repeat procedure for each model
         for (String modelPath : modelPaths) {
           // compute clusterID of each input wikipage
@@ -261,9 +264,19 @@ public class MutualInformation {
           // System.out.println(categoriesClusterFractions
           //   .filter((point) -> point._2() > 1/numDocuments)
           //   .take(10));
-          System.out.println("Model score = " + modelScore);
+          System.out.println("Score for model " + modelPath + " = " + modelScore);
+          results.add(modelPath + "," + modelScore);
         }
-
+      // output results to csv file
+      try {
+        FileWriter writer = new FileWriter("output/modelNMIscores.csv");
+        for(String line : results) {
+          writer.write(line);
+        }
+        writer.close();
+      }
+      catch (IOException e) {
+        System.err.println("Unable to write on file output/modelNMIscores.csv");
+      }
     }
-
 }
