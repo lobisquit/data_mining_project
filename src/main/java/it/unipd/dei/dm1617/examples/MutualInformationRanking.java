@@ -46,13 +46,16 @@ public class MutualInformationRanking {
         // path of vector representation of wikipedia articles
         String wikiVectorPath = args[2];
 
+        // path to a csv with tuples (category, importance score)
+        String categoriesRankingPath = args[3];
+
         // load categories of each wikipedia article
         JavaRDD<WikiPage> pages = InputOutput.read(sc, datasetPath);
 
         // retrieve categories ranking csv
         JavaPairRDD<String, Double> categoriesRankingRDD =
           // read file as JavaRDD of strings
-          sc.textFile("output/categoriesRanking.csv")
+          sc.textFile(categoriesRankingPath)
           .mapToPair((row) -> {
             String[] chunks = row.split(",");
 
