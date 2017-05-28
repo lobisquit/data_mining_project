@@ -65,7 +65,7 @@ public class MutualInformation {
           .mapToPair((category) -> new Tuple2<>(category, 1))
           .reduceByKey((x, y) -> x + y)
           // remove too unfrequent categories
-          .filter((point) -> point._2() > 1)
+          .filter((point) -> point._2() > 10)
           .cache();
 
         // retrieve a list of all categories in dataset
@@ -154,11 +154,15 @@ public class MutualInformation {
           // compute entropy Hw of current cluster
           double clusteringEntropy = clusterCountRDD
             .map((row) -> {
-              double probability = row._2() / numDocuments;
+              double probability = row._2() / (double) numDocuments;
               return - probability * Math.log(probability) / Math.log(2);
             })
             .reduce((x, y) -> x + y);
 
+          if (Double.isNaN(clusteringEntropy)) {
+            System.out.println("clusteringEntropy=" + clusteringEntropy);
+            System.exit(1);
+          }
           // create a RDD with (categories, clusterID)
           JavaPairRDD<List<String>, Integer> categoriesID = categories.coalesce(1)
             .zip(clusterIDs.coalesce(1))
@@ -195,31 +199,19 @@ public class MutualInformation {
               // extract tuple elements
               int clusterID = row._1()._1();
               String cat = row._1()._2();
-              double Pwc = row._2() / numDocuments;
+              double Pwc = row._2() / (double) numDocuments;
 
               // retrieve precomputed probabilities
-              double Pw = clusterCount.get(clusterID) / numDocuments;
+              double Pw = clusterCount.get(clusterID) / (double) numDocuments;
 
               /* what to do if category is not present */
-              double Pc = categoryCount.get(cat) / numDocuments;
-
-              // TODO fix corner case of this bug
-              if (row._2() > clusterCount.get(clusterID) ||
-                  row._2() > categoryCount.get(cat)) {
-                System.out.println(
-                  "Cluster model " + modelPath +
-                  "\nPwc= " + row._2() +
-                  "\nPw=  " + clusterCount.get(clusterID) +
-                  "\nPc=  " + categoryCount.get(cat) +
-                  "\n-------------------------------------");
-                return new Tuple2<>(cat, 0.0);
-              }
+              double Pc = categoryCount.get(cat) / (double) numDocuments;
 
               // sum over class and its complementary, to find
               // term in sum regarding current w and c
               double clusterCategoryScore;
               // deal with single cluster containing all memebers of a category
-              if (Pw - Pwc == 0) {
+              if (Pw <= Pwc) {
                 clusterCategoryScore =
                 // note that a 0-probability event has entropy 0
                (Pwc * Math.log(Pwc / (Pc * Pw)) + 0) / Math.log(2);
@@ -233,6 +225,7 @@ public class MutualInformation {
 
               return new Tuple2<>(cat, clusterCategoryScore);
             })
+            .filter((row) -> row._2() != 0.0)
             // sum over all clusters, to obtain each category score
             // (i.e. NMI numerator for each category)
             .reduceByKey((x, y) -> x + y)
@@ -242,11 +235,20 @@ public class MutualInformation {
               double clusterCategoryScore = row._2();
 
               double categoryFraction = categoryCount.get(cat) / (double) numDocuments;
-              double categoryEntropy = - categoryFraction * Math.log(categoryFraction) / Math.log(2);
+              double categoryEntropy;
+              // handle corner case in which 0 log(0) would lead to NaN instead of 0
+              if (categoryFraction == 0) {
+                categoryEntropy = 0;
+              }
+              else {
+                categoryEntropy = - categoryFraction * Math.log(categoryFraction) / Math.log(2);
+              }
+
               // normalize to total entropy (clustering + current class)
               return 2 * clusterCategoryScore /
                 (clusteringEntropy + categoryEntropy);
             })
+
             // sum across all categories
             .reduce((x, y) -> x + y);
 
@@ -260,7 +262,7 @@ public class MutualInformation {
       try {
         FileWriter writer = new FileWriter("output/modelNMIscores.csv");
         for(String line : results) {
-          writer.write(line);
+          writer.write(line + "\n");
         }
         writer.close();
       }
