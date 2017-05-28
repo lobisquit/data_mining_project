@@ -25,7 +25,7 @@ import java.io.*;
 * Normalized Mutual Information is a measure of how informative is clustering
 * against classes
 */
-public class MutualInformation {
+public class MutualInformationOverlapping {
     public static void main(String[] args){
         // usual Spark setup
         SparkConf conf = new SparkConf(true).setAppName("Clustering");
@@ -260,14 +260,14 @@ public class MutualInformation {
         }
       // output results to csv file
       try {
-        FileWriter writer = new FileWriter("output/modelNMIscores.csv");
+        FileWriter writer = new FileWriter("output/modelNMIscoresOverlapping.csv");
         for(String line : results) {
           writer.write(line + "\n");
         }
         writer.close();
       }
       catch (IOException e) {
-        System.err.println("Unable to write on file output/modelNMIscores.csv");
+        System.err.println("Unable to write on file output/modelNMIscoresOverlapping.csv");
       }
     }
 }
