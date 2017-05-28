@@ -46,12 +46,12 @@ public class Cluster {
         sc.setLogLevel("ERROR");
 
         // mark the starting point of our subsequent messages
-        System.out.println("###################################################" +
+        System.err.println("###################################################" +
             "#################################################################");
 
         // load Doc2Vec page representation, i.e. tuples (wikipage_id, vector),
         // from the multiple output files
-        System.out.println("load files");
+        System.err.println("load files");
         ArrayList<JavaRDD<Tuple2<Long, Vector>>> wikiVectors = new ArrayList();
         File folder = new File(wpvPath);
         for (File file : folder.listFiles()) {
@@ -62,12 +62,11 @@ public class Cluster {
         }
 
         // merge all chunks in  a single RDD
-        System.out.println("get a unique file");
+        System.err.println("get a unique file");
         JavaRDD<Tuple2<Long, Vector>> allWikiVector = wikiVectors.remove(0);
-        for(JavaRDD<Tuple2<Long, Vector>> app:wikiVectors){
+        for(JavaRDD<Tuple2<Long, Vector>> app:wikiVectors) {
             allWikiVector = allWikiVector.union(app);
         }
-
         // remove id, since clustering requires RDD of Vectors
         JavaRDD<Vector> onlyVectors = allWikiVector.map(elem -> {
             return elem._2();
