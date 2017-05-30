@@ -73,6 +73,7 @@ public class Cluster {
             return elem._2();
         });
 
+
         // cluster the data into two classes using method specified in args[1]
         System.out.println("performing clustering");
 
@@ -119,11 +120,17 @@ public class Cluster {
                 break;
 
             case "LDA":
+                // load bag of words representation
+                JavaPairRDD<WikiPage, Vector> bow = JavaPairRDD.fromJavaRDD(sc.objectFile(wpvPath));
+                JavaPairRDD<Long, Vector> indexBow = bow.mapToPair(tuple -> {
+                    return new Tuple2<Long, Vector>(tuple._1.getId(), tuple._2);
+                });
+
                 LDAModel LDA = new LDA()
                     .setK(numClusters)
                     .setMaxIterations(numIterations)
                     // Converting the JavaRDD<Tuple2> to a JavaPairRDD because training method require it
-                    .run(JavaPairRDD.fromJavaRDD(allWikiVector));
+                    .run(indexBow);
                 LDA.save(sc.sc(),
                     "output/" + clusteringName +
                     "_n_cluster_" + numClusters +
