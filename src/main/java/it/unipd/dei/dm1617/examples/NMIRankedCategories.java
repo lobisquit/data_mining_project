@@ -11,8 +11,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaRDDLike;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.mllib.clustering.KMeans;
-import org.apache.spark.mllib.clustering.KMeansModel;
+import org.apache.spark.mllib.clustering.*;
 import org.apache.spark.mllib.linalg.Vector;
 
 import scala.Tuple2;
@@ -25,7 +24,7 @@ import java.io.*;
 * Normalized Mutual Information is a measure of how informative is clustering
 * against classes
 */
-public class MutualInformationRanking {
+public class NMIRankedCategories {
     public static void main(String[] args){
         // usual Spark setup
         SparkConf conf = new SparkConf(true).setAppName("Clustering");
@@ -140,9 +139,32 @@ public class MutualInformationRanking {
         // repeat procedure for each model
         for (String modelPath : modelPaths) {
           // compute clusterID of each input wikipage
-          KMeansModel model = KMeansModel.load(sc.sc(), modelPath);
+          JavaRDD<Integer> clusterIDs;
+          switch (clusteringTecnique) {
+              case "KMeans":
+                KMeansModel Kmodel = KMeansModel.load(sc.sc(), modelPath);
+                clusterIDs = Kmodel.predict(wikiVectors);
+                break;
 
-          JavaRDD<Integer> clusterIDs = model.predict(wikiVectors);
+              case "LDA":
+                // LDA is not able to load models, nor to predict the cluster of a new document
+                // so I will read (wikiPageID, clusterID) results CSV
+                clusterIDs =
+                  sc.textFile(modelPath)
+                  .mapToPair((row) -> {
+                    String[] chunks = row.split(",");
+                    try {
+                      return Integer.parseInt(chunks[chunks.length - 1]);
+                    }
+                    catch (Exception e) {
+                      throw new Exception("Unable to parse line: " + row);
+                    }
+                  });
+
+                DistributedLDAModel Lmodel = DistributedLDAModel.load(sc.sc(), modelPath);
+                clusterIDs = Lmodel.predict(wikiVectors);
+                break;
+          }
 
           // compute number of cluster elements and global entropy
           JavaPairRDD<Integer, Integer> clusterCountRDD = clusterIDs
