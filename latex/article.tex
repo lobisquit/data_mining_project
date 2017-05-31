@@ -87,26 +87,52 @@ BCOR5mm, % Binding correction
 
 \section{Dataset e Analisi Preliminare}
 
-	- descrizione del dataset
-	
-	- pulizia degli articoli (senza categorie, disambigua)
-	
-	- sort e distribuzione delle categorie
+Il dataset che abbiamo utilizzato per effettuare questa analisi non è altro che un dump di wikipedia.
+Tale Dump è composto da un JSON contenente centomila articoli di wikipedia in versione inglese. Per ogni articolo di
+wikipedia abbiamo a disposizione il titolo, il testo, l'id e le categorie dell'articolo.
 
+La nostra analisi mira a valutare gli articoli e le loro categorie quindi prima di effettuare
+tale analisi si è deciso di eliminare tutti gli articoli i quali non risultano essere associati a
+nessuna categorie. Tale pagine sono dovute al fatto che in wikipedia sono presenti della pagine di
+disambiguazione e quindi non sono utili per i nostri scopi.
+
+//todo analisi delle categorie (sort e distribuzione delle categorie)
 
 \section{Rappresentazione del Dataset}
 
-	- eliminazione delle stopword e lemmatization (sia per wiki vectors che per bag of words)
+	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set
+    eliminando le stop words presenti nel testo e lemmatizzando del corpus rimanente. Per l'eliminazione delle
+    stop words ci siamo basati su una lista di parole fornita dal sito http://www.ranks.nl/stopwords.
 
-	\subsection{Vettoriale}
+	\subsection{VETTORIALIZZIONE DEGLI ARTICOLI}
 
-		- allenamento word2vec con i suoi vari parametri (dare una motivazione per la dimensione 100)
+		%allenamento word2vec con i suoi vari parametri (dare una motivazione per la dimensione 100)
 
-		- trasformazione delle parole in vettori-articolo
+        Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare
+        gli articoli di Wikipedia in vettori.
+        Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome Word2Vec. Tale algoritmo ideato da
+        Tomas Mikolov non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del
+        linguaggio naturale in vettori. Nello spazio vettoriale generato le parole semanticamente più simili
+        saranno più vicine, viceversa parole semanticamente diverse risulteranno distanti.
 
-	\subsection{Bag of Words}
+        Tale funzionalità è già implementata nella suite software di Spark,
+        per sfruttarla è necessario inizializzare alcuni parametri di settaggio. Tra questi uno dei più importanti
+        è sicuramente la dimensione del vettore in uscita. In letteratura si è valutato che una dimensionalità
+        nel ordine dei 100/300 \cite{w2vdim}
+        è sufficiente a rappresenta un buon compromesso in termini di performance.
+        Uno volta settati i parametri l'algoritmo di Word2Vec necessita di essere allenato. Tale allenamento è stato
+        fatto su tutto il corpus.
 
-		- la trasformazione in bag of words
+        Per trasformare un articolo è stato sufficiente effettuare la media vettoriale di tutte le parole presenti
+        nel testo di un'articolo. Tale operazione è stata eseguita attraverso il BLAS (Basic Linear Algebra Subprograms)
+        di Spark per eseguire tali conti nella maniera più efficiente possibile.
+
+
+
+
+	\subsection{BAG OF WORDS}
+
+		//todo: la trasformazione in bag of words
 
 
 
@@ -179,11 +205,14 @@ BCOR5mm, % Binding correction
 %	BIBLIOGRAPHY
 %----------------------------------------------------------------------------------------
 
-\renewcommand{\refname}{\spacedlowsmallcaps{References}} % For modifying the bibliography heading
+\begin{thebibliography}{12}
 
-\bibliographystyle{unsrt}
+\bibitem{w2vdim}
+    Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean. Efficient estimation of word representations
+    in vector space. ICLR Workshop, 2013.
 
-\bibliography{sample.bib} % The file containing the bibliography
+
+\end{thebibliography}
 
 %----------------------------------------------------------------------------------------
 
