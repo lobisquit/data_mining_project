@@ -99,13 +99,15 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 \section{Dataset e Analisi Preliminare}
 
-Il dataset che abbiamo utilizzato per effettuare questa analisi non è altro che un dump di wikipedia.
-Tale Dump è composto da un JSON contenente centomila articoli di wikipedia in versione inglese. Per ogni articolo di
-wikipedia abbiamo a disposizione il titolo, il testo, l'id e le categorie dell'articolo.
+Ci sono stati messi a disposizione due dataset, di differenti grandezze, per effettuare questa analisi.
+Nello specifico abbiamo utilizzato quello minore, il quale è un dump composto da un JSON contenente centomila articoli di Wikipedia in versione inglese.
+Per ogni articolo abbiamo a disposizione il titolo, il testo, l'id e le categorie dell'articolo.
+In particolare le categorie sono assegnate a discrezione degli autori e dei successivi revisori di ogni voce, in quanto Wikipedia non prevede una struttura o dei vincoli particolari per l'assegnazione di queste categorie.
+In particolare le categorie sono assegnate a discrezione degli autori e dei successivi revisori di ogni voce, in quanto Wikipedia non prevede una struttura o dei vincoli particolari per l'assegnazione di queste categorie.
 
 La nostra analisi mira a valutare gli articoli e le loro categorie quindi prima di effettuare
 tale analisi si è deciso di eliminare tutti gli articoli i quali non risultano essere associati a
-nessuna categorie. Tale pagine sono dovute al fatto che in wikipedia sono presenti della pagine di
+nessuna categoria. Tali pagine sono dovute al fatto che in Wikipedia sono presenti della pagine di
 disambiguazione e quindi non sono utili per i nostri scopi.
 
 //todo analisi delle categorie (sort e distribuzione delle categorie)
