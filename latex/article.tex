@@ -74,15 +74,27 @@ BCOR5mm, % Binding correction
 
 \section{Introduzione}
 
-- descrizione del problema in generale e del constesto
+Per il progetto del corso di Data Mining abbiamo deciso di svolgere la 
+traccia proposta B, che proponeva di indagare fino a che punto un clustering sulle pagine di Wikipedia è consistente con le categorie associate alle pagine stesse.
+Per fare ciò avevamo a disposizione due dataset, di differenti grandezze, formati da articoli di Wikipedia in lingua inglese.
 
-- delineazione degli obiettivi:
+A partire da tali premesse ci siamo prefissati i seguenti quesiti:
 
-	- gli articoli di wikipedia sono clusterizzabili?
+\begin{itemize}
+	\item quanto sono clusterizzabili gli articoli del dataset?
+	\item le categorie associate a questi articoli sono sensate?
+	\item quali sono dei metodi validi per rappresentare opportunamente i nostri dati in input?
+	\item come variano i cluster utilizzando tecniche diverse?
+	\item c'è un numero ottimale di cluster per il dataset? Quanto vale?
+	\item qual è il rapporto tra il cluster ottenuto e le categorie?
+\end{itemize}
 
-	- rapporto tra cluster e le categorie?
-
-	- cosa succede con varie tecniche di clustering?
+Tali quesiti troveranno risposta nel seguito della trattazione, che è strutturata nel modo che segue.
+La sezione 2 illustra l'analisi preliminare effettuata sugli articoli e sulle categorie.
+Successivamente il capitolo 3 descrive le tecniche utilizzate per rappresentare il dataset.
+Il capitolo 4 tratta poi degli algoritmi di clustering applicati al dataset e delle tecniche di valutazione impiegate.
+Di seguito la sezione 5 riporta e discute i risultati ottenuti nel capitolo precedente, offrendo anche un confronto tra i metodi utilizzati.
+Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propone alcuni spunti di ricerca per futuri sviluppi.
 
 
 \section{Dataset e Analisi Preliminare}
