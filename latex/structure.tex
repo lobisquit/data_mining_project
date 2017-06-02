@@ -19,12 +19,14 @@
 %----------------------------------------------------------------------------------------
 
 \usepackage[
-nochapters, % Turn off chapters since this is an article        
+nochapters, % Turn off chapters since this is an article
 beramono, % Use the Bera Mono font for monospaced text (\texttt)
 eulermath,% Use the Euler font for mathematics
 pdfspacing, % Makes use of pdftex’ letter spacing capabilities via the microtype package
 dottedtoc % Dotted lines leading to the page numbers in the table of contents
 ]{classicthesis} % The layout is based on the Classic Thesis style
+
+\usepackage{amsmath}
 
 \usepackage{arsclassica} % Modifies the Classic Thesis package
 
@@ -39,7 +41,7 @@ dottedtoc % Dotted lines leading to the page numbers in the table of contents
 
 \usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
 
-\usepackage{subfig} % Required for creating figures with multiple parts (subfigures)
+\usepackage{subcaption} % Required for creating figures with multiple parts (subfigures)
 
 \usepackage{amsmath,amssymb,amsthm} % For including math equations, theorems, symbols, etc
 

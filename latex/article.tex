@@ -146,7 +146,7 @@
 			Con questa descrizione del problema è possibile calcolare l'informazione mutua tra due distinti clustering $\Omega$ e $\Phi$.
 			Questa matrica è stata normalizzata in $(0, 1)$ per garantire un confronto alla pari tra clustering di dimensione diversa.
 
-			Quindi l'informazione mutua normalizzata si calcola come
+			NMI viene quindi definita come
 			\begin{equation} \begin{aligned} \label{eq:NMI}
 				& NMI(\Omega, \Phi) = \frac
 					{I(\Omega, \Phi)}
@@ -158,7 +158,8 @@
 				& H(\Omega) = - \sum_{\omega \in \Omega} P(\omega) \log P(\omega) \\
 				& H(\Phi) = - \sum_{\phi \in \Phi} P(\phi) \log P(\phi) \\
 			\end{aligned} \end{equation}
-			dove come valore delle probabilità di appartenenza sono stati impegate le stime a massima verosimiglianza, per esempio
+
+			All'atto pratico, come valore delle probabilità sono stati impegate stime a massima verosimiglianza, per esempio
 			\begin{equation*}
 				P(\omega) = \frac
 					{ \text{numero di punti in }\omega }
@@ -167,30 +168,58 @@
 
 			\bigbreak
 
-			Purtroppo questa definizione non è direttamente applicabile al confronto tra cluster e categorie perché, mentre i clustering ottenuti con KMeans e LDA sono delle effettive partizioni del dataset, non si può dire lo stesso delle categorie, dato che un articolo può possederne più di una.
+			Purtroppo questa definizione non è direttamente applicabile al confronto tra cluster e categorie perché, mentre i clustering ottenuti con K-means e LDA sono delle effettive partizioni del dataset, non si può dire lo stesso delle categorie, dato che un articolo può possederne più di una.
 
 			% TODO link o descrizione della IDF utilizzata
 			Il primo approccio per scogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} tra le categorie di ciascun articolo per eleggere la più rappresentativa.
-			Grazie a questo passaggio NMI viene calcolata come da equazione \ref{eq:NMI}, con i seguenti risultati al variare del numero di cluster.
+			Grazie a questo passaggio NMI viene calcolata come dalla sua definizione (equazione \ref{eq:NMI}).
 
 			% TODO specificare meglio la normalizzazione
 			Il secondo approccio tenta invece di estendere NMI al caso di cluster che si sovrappongano l'uno all'altro, considerando quindi ogni classe $c$ con la sua complementare $\bar{c}$ una partizione dell'insieme dei punti.
-			L'informazione mutua viene calcolata quindi per ogni clustering $C = {c, \bar{c}}$ e poi sommata per estrarre un punteggio. A causa di questa passaggio si perde la normalizzazione tra 0 e 1: i risultati sono comunque confrontabili, perché risultano tutti multipli di un fattore che è funzione delle sole categoerie, quindi indipendente dalle varie tecniche impiegate.
+			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma. A causa di questa passaggio si perde la normalizzazione tra 0 e 1: i risultati sono comunque confrontabili, perché risultano tutti multipli di un fattore che è funzione della distribuzione delle categoerie, quindi indipendente dalle  tecniche di clustering.
 
 \section{Risultati}
 
 	\subsection{Numero di cluster}
-		Il K selezionato dalle due tecniche Kmeans e LDA
-		Speriamo sia simile!
+		Il clustering K-means risulta il più semplice e rapido da ottenere e per questo motivo abbiamo deciso di ispezionare un ampio range di valori per K, numero di cluster.
+		
+		La funzione obiettivo cala continuamente al variare del numero di cluster, come da figura \ref{fig:KMeansObj}: questa osservazione è confermata dall'andamento della derivata della funzione obiettivo rispetto a K. Essa raggiunge un tasso di incremento trascurabile in prossimità del valore K=100.
+		
+		Perciò con la tecnica di clustering LDA ci siamo concentrati su valori di K compresi tra 50 e 150.
+		
+		\begin{figure}[!htb]
+			\hspace{-2cm}
+			\begin{subfigure}{.5\textwidth}
+				\centering
+				\includegraphics[scale=.5]{../results/KMeans.eps}
+				\caption{Funzione obiettivo}
+			\end{subfigure}
+			\hspace{1.5cm}
+			\begin{subfigure}{.5\textwidth}
+				\centering
+				\includegraphics[scale=.5]{../results/KMeansDerivative.eps}
+				\caption{Derivata della funzione obiettivo}
+			\end{subfigure}
+			\caption{La funzione obiettivo smette di calare in modo significativo tra 50 e 150.}
+			\label{fig:KMeansObj}
+		\end{figure}
 
 	\subsection{Validazione con Simple Silhouette}
-
-		L'andamento sempre crescente della Silhouette
-		Un bel grafico lineare
-
+		\begin{figure}[!htb]
+			\centering
+			\includegraphics[scale=.5]{../results/silhouette.eps}
+			\caption{Silhouette}
+			\label{fig:silhouette}
+		\end{figure}
+		
 	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
-		Confronto tramite NMI delle due tecniche Kmeans e LDA
-
+		\begin{figure}[!htb]
+			\centering
+			\includegraphics[scale=.5]{../results/NMI-kmeans-categories.eps}
+			\caption{Informazione mutua tra K-means e il clustering indotto dalle categorie.}
+			\label{fig:NMI-kmeans-categories}
+		\end{figure}
+		
 \section{Conclusioni}
 	Le conclusioni generali dalle analisi effettuate
 	Proposte di punti da approfondire in studi futuri
