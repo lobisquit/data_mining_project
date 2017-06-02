@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import os.path
+import collections
 
 ARTICLES_ASSIGNED_THRESHOLD = 2
 INPUT_FILE = "../output/sort_and_count_categories/part-"
@@ -58,3 +59,21 @@ for tup in res:
 	if tup[1] >= ARTICLES_ASSIGNED_THRESHOLD:
 		i +=1
 print("Categories with " + str(ARTICLES_ASSIGNED_THRESHOLD) + " or more articles: " + str(i))
+
+# count how many categories have how many articles
+counters = {}
+for tup in res:
+	articles_with_this_category = tup[1]
+	if not (articles_with_this_category in counters):
+		counters[articles_with_this_category] = 1
+	else:
+		counters[articles_with_this_category] += 1
+
+# sort the dict
+counters = collections.OrderedDict(sorted(counters.items()))
+# save to csv file
+with open('../results/categoriesIstogram.csv', 'w') as f:
+	for k, v in counters.items():
+		f.write(str(k) + "," + str(v) + "\n")
+
+print("Saved to results/categoriesIstogram.csv")
