@@ -87,12 +87,19 @@ public class EvaluationLDA {
         List<Tuple3<Long, int[], int[]>> collection = topicAssignments.collect();
 
         try{
-            PrintWriter writer = new PrintWriter("./output/LDA-assignement-k80-vocab3000.csv", "UTF-8");
+            PrintWriter writer = new PrintWriter("./output/LDA-assignement-k"+k+"-vocab3000.csv", "UTF-8");
             writer.println("ArticleID,ClusterID");
             for (int i = 0; i < collection.size(); i++) {
                 Tuple3<Long, int[], int[]> tuple = collection.get(i);
                 writer.println(tuple._1()+","+tuple._3()[0]);
             }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try{
+            PrintWriter writer = new PrintWriter("./output/LDA-loglikelihood-k"+k+"-vocab3000.csv", "UTF-8");
+            writer.println(""+logLikelihood);
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
