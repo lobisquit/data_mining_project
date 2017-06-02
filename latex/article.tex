@@ -120,18 +120,16 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 
 	\begin{table}[]
-	\centering
-	\caption{Le categorie con maggior numero di articoli associati}
-	\label{table:toptencategories}
-	\begin{tabular}{l|l|l|l|l}
+	\hspace*{-2cm}\begin{tabular}{l|l||l|l}
 	Living people & 14994 & Association football midfielders & 611 \\
 	Year of birth missing (living people) & 1172 & Association football defenders & 502 \\
 	Place of birth missing (living people) & 751 & Association football forwards & 409 \\
 	American films & 741 & Year of birth unknown & 404 \\
 	English-language films & 691 & English Football League players & 398 \\
 	\end{tabular}
+	\caption{Le categorie con maggior numero di articoli associati}
+	\label{table:toptencategories}
 	\end{table}
-
 
 
 \section{Rappresentazione del Dataset}
@@ -140,7 +138,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito http://www.ranks.nl/stopwords. 
 	Questi termini vengono filtrati dal corpus in quanto portano un contenuto informativo sull'argomento dell'articolo pressoch\'{e} nullo.
 	
-	La lemmatizzazione invece \'{e} stata eseguita utilizzando il $Lemmatizer$ di spark al fine di raggruppare assieme le variazioni semantiche delle parole.
+	La lemmatizzazione invece è stata eseguita utilizzando il $Lemmatizer$ di spark al fine di raggruppare assieme le variazioni semantiche delle parole.
 	
 	\subsection{VETTORIALIZZIONE DEGLI ARTICOLI}
 
@@ -173,7 +171,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	$$
 	w_{i,j}=tf_{i,j}\times\log(\frac{N}{df_{i}})
 	$$
-	dove $tf_{i,j}$ rappresenta il numero di occorrenze di $i$ in $j$, $df_{i}$ \`{e} il numero di documenti contenenti il termine $i$, ed $N$ \`{e} il numero totale di documenti.
+	dove $tf_{i,j}$ rappresenta il numero di occorrenze di $i$ in $j$, $df_{i}$ è il numero di documenti contenenti il termine $i$, ed $N$ è il numero totale di documenti.
 	
 	Abbiamo scelto di limitare l'analisi alle 3000 parole pi\`{u} frequenti nel dataset (escludendo le stopwords).
 	
