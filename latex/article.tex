@@ -100,7 +100,39 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 	La nostra analisi mira a valutare la relazione semantica tra gli articoli e le loro categorie, quindi prima di effettuare l'analisi si è deciso di eliminare tutti gli articoli che non risultano essere associati a nessuna categoria. Queste pagine sono dette \emph{di disambiguazione} e quindi non sono utili per i nostri scopi.
 
-	//todo analisi delle categorie (sort e distribuzione delle categorie)
+	Per quanto concerne le categorie, una prima ispezione manuale rivela che esse sono alquanto arbitrarie e spesso così specifiche da essere associate ad un articolo soltanto.
+	Esempio di ciò sono le categorie "Roads on the National Register of Historic Places in Illinois", "United Nations Security Council resolutions concerning Sudan" e "Singaporean people of Yemeni descent".
+    C'è inoltre da sottolineare come ad ogni articolo siano spesso associate più di una categoria, con una media di 1.99 categorie per ogni voce del dataset.
+    
+    Un'analisi più approfondita sulla distribuzione delle categorie è riportata in figura \ref{fig:categories}. 
+    \begin{figure}[!htb]
+			\centering
+			\includegraphics[scale=.5]{Figures/categories.png}
+			\caption{Distribuzione delle categorie. Nota: per rendere il grafico leggibile il picco finale raggruppa il numero di categorie con cento o più articoli.}
+			\label{fig:categories}
+		\end{figure}
+   
+	L'analisi effettuata rivela infatti che, sul totale di 198609 distinte categorie presenti nel dataset, circa due terzi (precisamente 134524) di queste sono uniche, ovvero sono associate ad un solo articolo.
+	Dato che queste non portano alcun contenuto informativo utile alla clusterizzazione, abbiamo provveduto ad escludere tali categorie dalle successive analisi.
+
+	Nondimeno è anche presente un numero ristretto di 158 categorie associate a 100 o più articoli, le quali sono composte per lo più da categorie del genere "1900 deaths" e "1900 births" che si ripetono variando solamente l'anno.
+	In tabella \ref{table:toptencategories} sono riportate a titolo di esempio le categorie con più articoli associati.
+
+
+	\begin{table}[]
+	\centering
+	\caption{Le categorie con maggior numero di articoli associati}
+	\label{table:toptencategories}
+	\begin{tabular}{l|l|l|l|l}
+	Living people & 14994 & Association football midfielders & 611 \\
+	Year of birth missing (living people) & 1172 & Association football defenders & 502 \\
+	Place of birth missing (living people) & 751 & Association football forwards & 409 \\
+	American films & 741 & Year of birth unknown & 404 \\
+	English-language films & 691 & English Football League players & 398 \\
+	\end{tabular}
+	\end{table}
+
+
 
 \section{Rappresentazione del Dataset}
 	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words} presenti nel testo e lemmatizzando le parole rimaste.
