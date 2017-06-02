@@ -136,12 +136,46 @@
 			Magari buttiamoci un peso a sta metrica
 
 		\subsubsection{Normalized Mutual Information}
-			Il problema di individuare una funzione obiettivo che utilizzi le categorie, le quali non formano una partizione in quanto overlapping
+			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
 
-			Pulizia delle categorie con con idf
-			Modifica dell'algoritmo
+			Questa misura può essere impiegata per valutare quanto due partizioni, o \emph{clustering}, concordano nel suddividere un set di punti \cite{Manning}.
 
+			Per fare questo, ad ogni cluster è stata associata una variabile indicatrice $\omega$, che assume valore 1 se il punto considerato appartiene al cluster e 0 altrimenti.
+			Ogni clustering viene perciò individuato dall'insieme $\Omega$ di queste variabili aleatorie mutualmente esclusive e a somma unitaria.
 
+			Con questa descrizione del problema è possibile calcolare l'informazione mutua tra due distinti clustering $\Omega$ e $\Phi$.
+			Questa matrica è stata normalizzata in $(0, 1)$ per garantire un confronto alla pari tra clustering di dimensione diversa.
+
+			Quindi l'informazione mutua normalizzata si calcola come
+			\begin{equation} \begin{aligned} \label{eq:NMI}
+				& NMI(\Omega, \Phi) = \frac
+					{I(\Omega, \Phi)}
+					{\left[ H(\Omega) + H(\Phi)\right] / 2} \\
+				& \text{dove} \\
+				& I(\Omega, \Phi) =
+					\sum_{\omega \in \Omega} \sum_{\phi \in \Phi}
+						P(\omega \cap \phi) \log \frac {P(\omega \cap \phi)} {P(\omega) P(\phi)} \\
+				& H(\Omega) = - \sum_{\omega \in \Omega} P(\omega) \log P(\omega) \\
+				& H(\Phi) = - \sum_{\phi \in \Phi} P(\phi) \log P(\phi) \\
+			\end{aligned} \end{equation}
+			dove come valore delle probabilità di appartenenza sono stati impegate le stime a massima verosimiglianza, per esempio
+			\begin{equation*}
+				P(\omega) = \frac
+					{ \text{numero di punti in }\omega }
+					{ \text{numero di punti totali} }
+			\end{equation*}.
+
+			\bigbreak
+
+			Purtroppo questa definizione non è direttamente applicabile al confronto tra cluster e categorie perché, mentre i clustering ottenuti con KMeans e LDA sono delle effettive partizioni del dataset, non si può dire lo stesso delle categorie, dato che un articolo può possederne più di una.
+
+			% TODO link o descrizione della IDF utilizzata
+			Il primo approccio per scogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} tra le categorie di ciascun articolo per eleggere la più rappresentativa.
+			Grazie a questo passaggio NMI viene calcolata come da equazione \ref{eq:NMI}, con i seguenti risultati al variare del numero di cluster.
+
+			% TODO specificare meglio la normalizzazione
+			Il secondo approccio tenta invece di estendere NMI al caso di cluster che si sovrappongano l'uno all'altro, considerando quindi ogni classe $c$ con la sua complementare $\bar{c}$ una partizione dell'insieme dei punti.
+			L'informazione mutua viene calcolata quindi per ogni clustering $C = {c, \bar{c}}$ e poi sommata per estrarre un punteggio. A causa di questa passaggio si perde la normalizzazione tra 0 e 1: i risultati sono comunque confrontabili, perché risultano tutti multipli di un fattore che è funzione delle sole categoerie, quindi indipendente dalle varie tecniche impiegate.
 
 \section{Risultati}
 
@@ -171,6 +205,8 @@
     Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean. Efficient estimation of word representations
     in vector space. ICLR Workshop, 2013.
 
+\bibitem{Manning}
+	Christopher D. Manning, Prabhakar Raghavan and Hinrich Schütze, Introduction to Information Retrieval, Cambridge University Press. 2008
 
 \end{thebibliography}
 
