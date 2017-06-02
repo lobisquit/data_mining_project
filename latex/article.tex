@@ -90,8 +90,13 @@
 	//todo analisi delle categorie (sort e distribuzione delle categorie)
 
 \section{Rappresentazione del Dataset}
-	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words} presenti nel testo e lemmatizzando le parole rimaste. Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito http://www.ranks.nl/stopwords.
-
+	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words} presenti nel testo e lemmatizzando le parole rimaste.
+	
+	Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito http://www.ranks.nl/stopwords. 
+	Questi termini vengono filtrati dal corpus in quanto portano un contenuto informativo sull'argomento dell'articolo pressoch\'{e} nullo.
+	
+	La lemmatizzazione invece \'{e} stata eseguita utilizzando il $Lemmatizer$ di spark al fine di raggruppare assieme le variazioni semantiche delle parole.
+	
 	\subsection{VETTORIALIZZIONE DEGLI ARTICOLI}
 
         Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare
