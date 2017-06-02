@@ -93,19 +93,42 @@
 	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words} presenti nel testo e lemmatizzando le parole rimaste. Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito http://www.ranks.nl/stopwords.
 
 	\subsection{VETTORIALIZZIONE DEGLI ARTICOLI}
-		%allenamento word2vec con i suoi vari parametri (dare una motivazione per la dimensione 100)
-		Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare gli articoli di Wikipedia in vettori.
-		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome Word2Vec. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato, le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
 
-		Tale funzionalità è già implementata nella suite software di Spark, ma per sfruttarla al meglio è necessario settare alcuni parametri. Tra questi uno dei più importanti è la dimensione del vettore in uscita.
-		In letteratura si è valutato che una dimensionalità nel ordine dei 100 - 300 cite{w2vdim} risulta un buon compromesso tra prestazioni e capacità di descrivere il corpus.
+        Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare
+        gli articoli di Wikipedia in vettori.
+        Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome Word2Vec. Tale algoritmo ideato da
+        Tomas Mikolov non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del
+        linguaggio naturale in vettori. Nello spazio vettoriale generato le parole semanticamente più simili
+        saranno più vicine, viceversa parole semanticamente diverse risulteranno distanti.
 
-		Dopo aver allenato il modello Word2Vec sul nostro corpus di testi, trasformando così le singole parole in vettori, ad ogni articolo è stata associata la media vettoriale di tutte le parole presenti nel suo testo. Il \emph{Basic Linear Algebra Subprograms} di Spark ci ha permesso di eseguire questa operazione molto rapidamente.
+        Tale funzionalità è già implementata nella suite software di Spark,
+        per sfruttarla è necessario inizializzare alcuni parametri di settaggio. Tra questi uno dei più importanti
+        è sicuramente la dimensione del vettore in uscita. In letteratura si è valutato che una dimensionalità
+        nel ordine dei 100/300 \cite{w2vdim}
+        è sufficiente a rappresenta un buon compromesso in termini di performance.
+        Uno volta settati i parametri l'algoritmo di Word2Vec necessita di essere allenato. Tale allenamento è stato
+        fatto su tutto il corpus.
+
+        Per trasformare un articolo è stato sufficiente effettuare la media vettoriale di tutte le parole presenti
+        nel testo di un'articolo. Tale operazione è stata eseguita attraverso il BLAS (Basic Linear Algebra Subprograms)
+        di Spark per eseguire tali conti nella maniera più efficiente possibile.
+
 
 	\subsection{BAG OF WORDS}
 
-		//todo: la trasformazione in bag of words
-
+	L'algoritmo Bag of Words\cite{bagofwords} effettua la conversione degli articoli in vettori considerando le occorrenze dei termini in essi.
+	In particolare viene considerata come metrica la \textit{Term frequency-inverse document frequency} (Tf-Idf).
+	
+	Si definisce la Tf-Idf relativa all'$i$-esimo termine nel $j$-esimo articolo come:
+	$$
+	w_{i,j}=tf_{i,j}\times\log(\frac{N}{df_{i}})
+	$$
+	dove $tf_{i,j}$ rappresenta il numero di occorrenze di $i$ in $j$, $df_{i}$ \`{e} il numero di documenti contenenti il termine $i$, ed $N$ \`{e} il numero totale di documenti.
+	
+	Abbiamo scelto di limitare l'analisi alle 3000 parole pi\`{u} frequenti nel dataset (escludendo le stopwords).
+	
+	Pertanto il modello prodotto associa ad ogni documento un vettore di dimensione 3000, contenente gli indici TfIdf associati ad ogni articolo per tutte le parole selezionate.
+	
 
 
 \section{Clustering}
@@ -215,7 +238,8 @@
 	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
 		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale=.5]{../results/NMI-kmeans-categories.eps}
+			%TODO: dava un errore..
+			%\includegraphics[scale=.5]{../results/NMI-kmeans-categories.eps}
 			\caption{Informazione mutua tra K-means e il clustering indotto dalle categorie.}
 			\label{fig:NMI-kmeans-categories}
 		\end{figure}
@@ -237,6 +261,12 @@
 \bibitem{Manning}
 	Christopher D. Manning, Prabhakar Raghavan and Hinrich Schütze, Introduction to Information Retrieval, Cambridge University Press. 2008
 
+\bibitem{bagofwords}
+	Harris, Zellig S. "Distributional structure." Word 10.2-3 (1954): 146-162.
+	
+\bibitem{lda}
+	Blei, David M., Andrew Y. Ng, and Michael I. Jordan. "Latent dirichlet allocation." Journal of machine Learning research 3.Jan (2003): 993-1022.
+	
 \end{thebibliography}
 
 %----------------------------------------------------------------------------------------
