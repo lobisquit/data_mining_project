@@ -20,12 +20,12 @@
 %----------------------------------------------------------------------------------------
 
 \documentclass[
-12pt, % Main document font size
-a4paper, % Paper type, use 'letterpaper' for US Letter paper
-oneside, % One page layout (no page indentation)
-%twoside, % Two page layout (page indentation for binding and different headers)
-headinclude,footinclude, % Extra spacing for the header and footer
-BCOR5mm, % Binding correction
+	12pt, % Main document font size
+	a4paper, % Paper type, use 'letterpaper' for US Letter paper
+	oneside, % One page layout (no page indentation)
+	%twoside, % Two page layout (page indentation for binding and different headers)
+	headinclude,footinclude, % Extra spacing for the header and footer
+	BCOR5mm, % Binding correction
 ]{scrartcl}
 
 \input{structure.tex} % Include the structure.tex file which specified the document structure and layout
@@ -62,10 +62,6 @@ BCOR5mm, % Binding correction
 
 \maketitle % Print the title/author/date block
 
-
-
-
-
 \newpage
 
 %----------------------------------------------------------------------------------------
@@ -74,75 +70,37 @@ BCOR5mm, % Binding correction
 
 \section{Introduzione}
 
-Per il progetto del corso di Data Mining abbiamo deciso di svolgere la 
-traccia proposta B, che proponeva di indagare fino a che punto un clustering sulle pagine di Wikipedia è consistente con le categorie associate alle pagine stesse.
-Per fare ciò avevamo a disposizione due dataset, di differenti grandezze, formati da articoli di Wikipedia in lingua inglese.
+- descrizione del problema in generale e del constesto
 
-A partire da tali premesse ci siamo prefissati i seguenti quesiti:
+- delineazione degli obiettivi:
 
-\begin{itemize}
-	\item quanto sono clusterizzabili gli articoli del dataset?
-	\item le categorie associate a questi articoli sono sensate?
-	\item quali sono dei metodi validi per rappresentare opportunamente i nostri dati in input?
-	\item come variano i cluster utilizzando tecniche diverse?
-	\item c'è un numero ottimale di cluster per il dataset? Quanto vale?
-	\item qual è il rapporto tra il cluster ottenuto e le categorie?
-\end{itemize}
+	- gli articoli di wikipedia sono clusterizzabili?
 
-Tali quesiti troveranno risposta nel seguito della trattazione, che è strutturata nel modo che segue.
-La sezione 2 illustra l'analisi preliminare effettuata sugli articoli e sulle categorie.
-Successivamente il capitolo 3 descrive le tecniche utilizzate per rappresentare il dataset.
-Il capitolo 4 tratta poi degli algoritmi di clustering applicati al dataset e delle tecniche di valutazione impiegate.
-Di seguito la sezione 5 riporta e discute i risultati ottenuti nel capitolo precedente, offrendo anche un confronto tra i metodi utilizzati.
-Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propone alcuni spunti di ricerca per futuri sviluppi.
+	- rapporto tra cluster e le categorie?
+
+	- cosa succede con varie tecniche di clustering?
 
 
 \section{Dataset e Analisi Preliminare}
+	Il dataset che abbiamo utilizzato per effettuare questa analisi non è altro che un \emph{dump} di wikipedia.
+	Tale \emph{dump} è composto da un JSON contenente centomila articoli di Wikipedia in lingua inglese. Per ogni articolo di Wikipedia abbiamo a disposizione il titolo, il testo, l'id e le categorie assegnate all'articolo dai suoi autori.
 
-Ci sono stati messi a disposizione due dataset, di differenti grandezze, per effettuare questa analisi.
-Nello specifico abbiamo utilizzato quello minore, il quale è un dump composto da un JSON contenente centomila articoli di Wikipedia in versione inglese.
-Per ogni articolo abbiamo a disposizione il titolo, il testo, l'id e le categorie dell'articolo.
-In particolare le categorie sono assegnate a discrezione degli autori e dei successivi revisori di ogni voce, in quanto Wikipedia non prevede una struttura o dei vincoli particolari per l'assegnazione di queste categorie.
-In particolare le categorie sono assegnate a discrezione degli autori e dei successivi revisori di ogni voce, in quanto Wikipedia non prevede una struttura o dei vincoli particolari per l'assegnazione di queste categorie.
+	La nostra analisi mira a valutare la relazione semantica tra gli articoli e le loro categorie, quindi prima di effettuare l'analisi si è deciso di eliminare tutti gli articoli che non risultano essere associati a nessuna categoria. Queste pagine sono dette \emph{di disambiguazione} e quindi non sono utili per i nostri scopi.
 
-La nostra analisi mira a valutare gli articoli e le loro categorie quindi prima di effettuare
-tale analisi si è deciso di eliminare tutti gli articoli i quali non risultano essere associati a
-nessuna categoria. Tali pagine sono dovute al fatto che in Wikipedia sono presenti della pagine di
-disambiguazione e quindi non sono utili per i nostri scopi.
-
-//todo analisi delle categorie (sort e distribuzione delle categorie)
+	//todo analisi delle categorie (sort e distribuzione delle categorie)
 
 \section{Rappresentazione del Dataset}
-
-	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set
-    eliminando le stop words presenti nel testo e lemmatizzando del corpus rimanente. Per l'eliminazione delle
-    stop words ci siamo basati su una lista di parole fornita dal sito http://www.ranks.nl/stopwords.
+	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words} presenti nel testo e lemmatizzando le parole rimaste. Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito http://www.ranks.nl/stopwords.
 
 	\subsection{VETTORIALIZZIONE DEGLI ARTICOLI}
-
 		%allenamento word2vec con i suoi vari parametri (dare una motivazione per la dimensione 100)
+		Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare gli articoli di Wikipedia in vettori.
+		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome Word2Vec. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato, le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
 
-        Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare
-        gli articoli di Wikipedia in vettori.
-        Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome Word2Vec. Tale algoritmo ideato da
-        Tomas Mikolov non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del
-        linguaggio naturale in vettori. Nello spazio vettoriale generato le parole semanticamente più simili
-        saranno più vicine, viceversa parole semanticamente diverse risulteranno distanti.
+		Tale funzionalità è già implementata nella suite software di Spark, ma per sfruttarla al meglio è necessario settare alcuni parametri. Tra questi uno dei più importanti è la dimensione del vettore in uscita.
+		In letteratura si è valutato che una dimensionalità nel ordine dei 100 - 300 cite{w2vdim} risulta un buon compromesso tra prestazioni e capacità di descrivere il corpus.
 
-        Tale funzionalità è già implementata nella suite software di Spark,
-        per sfruttarla è necessario inizializzare alcuni parametri di settaggio. Tra questi uno dei più importanti
-        è sicuramente la dimensione del vettore in uscita. In letteratura si è valutato che una dimensionalità
-        nel ordine dei 100/300 \cite{w2vdim}
-        è sufficiente a rappresenta un buon compromesso in termini di performance.
-        Uno volta settati i parametri l'algoritmo di Word2Vec necessita di essere allenato. Tale allenamento è stato
-        fatto su tutto il corpus.
-
-        Per trasformare un articolo è stato sufficiente effettuare la media vettoriale di tutte le parole presenti
-        nel testo di un'articolo. Tale operazione è stata eseguita attraverso il BLAS (Basic Linear Algebra Subprograms)
-        di Spark per eseguire tali conti nella maniera più efficiente possibile.
-
-
-
+		Dopo aver allenato il modello Word2Vec sul nostro corpus di testi, trasformando così le singole parole in vettori, ad ogni articolo è stata associata la media vettoriale di tutte le parole presenti nel suo testo. Il \emph{Basic Linear Algebra Subprograms} di Spark ci ha permesso di eseguire questa operazione molto rapidamente.
 
 	\subsection{BAG OF WORDS}
 
@@ -155,11 +113,9 @@ disambiguazione e quindi non sono utili per i nostri scopi.
 	\subsection{Tecniche di Clustering}
 
 		\subsubsection{Hopkins Statistic}
-
 			Riportiamo lo score che ci dice che il nostro dataset è ben clusterizzabile
 
 		\subsubsection{Kmeans}
-
 			Kmeans e il suo score con un bel grafico
 
 		\subsubsection{Altri metodi}
@@ -175,15 +131,13 @@ disambiguazione e quindi non sono utili per i nostri scopi.
 	\subsection{Valutazioni del Clustering}
 
 		\subsubsection{Simple Silhouette}
-
 			Utilizzo della versione semplificata di Silhouette con i centroidi
 			Rimozione dei cluster con un solo articolo dal punteggio
 			Magari buttiamoci un peso a sta metrica
 
 		\subsubsection{Normalized Mutual Information}
+			Il problema di individuare una funzione obiettivo che utilizzi le categorie, le quali non formano una partizione in quanto overlapping
 
-			Il problema di individuare una funzione obiettivo che utilizzi le categorie,
-			le quali non formano una partizione in quanto overlapping
 			Pulizia delle categorie con con idf
 			Modifica dell'algoritmo
 
@@ -192,7 +146,6 @@ disambiguazione e quindi non sono utili per i nostri scopi.
 \section{Risultati}
 
 	\subsection{Numero di cluster}
-
 		Il K selezionato dalle due tecniche Kmeans e LDA
 		Speriamo sia simile!
 
@@ -202,22 +155,15 @@ disambiguazione e quindi non sono utili per i nostri scopi.
 		Un bel grafico lineare
 
 	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
-
 		Confronto tramite NMI delle due tecniche Kmeans e LDA
 
-
 \section{Conclusioni}
-
 	Le conclusioni generali dalle analisi effettuate
-
 	Proposte di punti da approfondire in studi futuri
 
-
-
-
-%----------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
-%----------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 
 \begin{thebibliography}{12}
 
