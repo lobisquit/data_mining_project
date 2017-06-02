@@ -55,6 +55,11 @@ public class CountVectorizer implements Serializable {
   }
 
   private int vocabularySize = Integer.MAX_VALUE;
+  private String[] vocabulary = new String[0];
+
+  public String[] getVocabulary() {
+      return vocabulary;
+  }
 
   public int getVocabularySize() {
     return vocabularySize;
@@ -102,6 +107,7 @@ public class CountVectorizer implements Serializable {
       .toArray((size) -> new String[size]);
 
     this.vocabularySize = vocabulary.length;
+    this.vocabulary = vocabulary;
 
     Broadcast<String[]> brVocabulary =
       new JavaSparkContext(docs.context()).broadcast(vocabulary);
