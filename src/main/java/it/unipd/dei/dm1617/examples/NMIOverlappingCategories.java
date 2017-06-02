@@ -135,7 +135,7 @@ public class NMIOverlappingCategories {
         // repeat procedure for each model
         for (String modelPath : modelPaths) {
           // compute clusterID of each input wikipage
-          JavaRDD<Integer> clusterIDs;
+          JavaRDD<Integer> clusterIDs = null;
           switch (clusteringTecnique) {
               case "KMeans":
                 KMeansModel Kmodel = KMeansModel.load(sc.sc(), modelPath);
@@ -147,7 +147,7 @@ public class NMIOverlappingCategories {
                 // so I will read (wikiPageID, clusterID) results CSV
                 clusterIDs =
                   sc.textFile(modelPath)
-                  .mapToPair((row) -> {
+                  .map((row) -> {
                     String[] chunks = row.split(",");
                     try {
                       return Integer.parseInt(chunks[chunks.length - 1]);

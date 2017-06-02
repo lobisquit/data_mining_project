@@ -23,7 +23,7 @@ public class SimpleSilhouetteCoefficient {
      * @param args[1] number of clusters to end to
      */
     public static void main(String[] args){
-        
+
         int kStart = Integer.parseInt(args[0]);
         int kEnd = Integer.parseInt(args[1]);
         int kStep = Integer.parseInt(args[2]);
@@ -34,7 +34,7 @@ public class SimpleSilhouetteCoefficient {
         kStart = 0;
         kEnd = listOfModels.length - 1;
         kStep = 1;
-        
+
         // set some parameters
         String dataset = "dataset/medium-sample.dat.wpv";
         String clusteringName = "KMeans";
@@ -53,7 +53,7 @@ public class SimpleSilhouetteCoefficient {
 
         JavaRDD<Tuple2<Long, Vector>> articlesAsVectors = getArticlesAsVectors(sc, dataset);
         System.out.println("Articles representation loaded");
-        
+
         for(Integer i= kStart; i <= kEnd; i += kStep){
 
             System.out.println("Computing kmeans with k="+listOfModels[i].toString()); // i
@@ -115,13 +115,13 @@ public class SimpleSilhouetteCoefficient {
                         return v1 + v2;
                     }
             );
-            
+
             Double ssc = sumCoefficients / new Long(simpleSilhoutteCoefficients.count()).doubleValue();
-            
-            /*Long totalCount = simpleSilhoutteCoefficients.filter(n -> {
+
+            Long totalCount = simpleSilhoutteCoefficients.filter(n -> {
                 return n != 0.0;
             }).count();
-            Double ssc = sumCoefficients / totalCount.doubleValue(); */
+            // Double ssc = sumCoefficients / totalCount.doubleValue(); 
 
             results.add(new Tuple2<>(listOfModels[i], ssc)); // i
 
