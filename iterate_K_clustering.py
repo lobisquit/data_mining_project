@@ -5,10 +5,6 @@ for K in 700 * logspace(0, 6, num=10, base=2) * 2**0.5:
     print("------> K = ", K)
     subprocess.call(
         "python3 make.py \
-<<<<<<< HEAD
         --class Cluster --master local[4] \
-=======
-        --class Cluster --master local[8] \
->>>>>>> origin/tfidf
         output/medium-sample.dat.wpv/ \
         KMeans {} 30".format(int(K)), shell=True)

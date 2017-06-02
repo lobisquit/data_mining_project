@@ -160,9 +160,6 @@ public class NMIRankedCategories {
                       throw new Exception("Unable to parse line: " + row);
                     }
                   });
-
-                DistributedLDAModel Lmodel = DistributedLDAModel.load(sc.sc(), modelPath);
-                clusterIDs = Lmodel.predict(wikiVectors);
                 break;
           }
 
