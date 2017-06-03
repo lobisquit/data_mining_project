@@ -20,7 +20,7 @@
 %----------------------------------------------------------------------------------------
 
 \documentclass[
-	12pt, % Main document font size
+	11pt, % Main document font size
 	a4paper, % Paper type, use 'letterpaper' for US Letter paper
 	oneside, % One page layout (no page indentation)
 	%twoside, % Two page layout (page indentation for binding and different headers)
@@ -29,6 +29,7 @@
 ]{scrartcl}
 
 \input{structure.tex} % Include the structure.tex file which specified the document structure and layout
+\usepackage{fullpage}
 
 \hyphenation{Fortran hy-phen-ation} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
 
@@ -120,7 +121,8 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 
 	\begin{table}[]
-	\hspace*{-2cm}\begin{tabular}{l|l||l|l}
+	%\hspace*{-2cm}
+	\begin{tabular}{l|l||l|l}
 	Living people & 14994 & Association football midfielders & 611 \\
 	Year of birth missing (living people) & 1172 & Association football defenders & 502 \\
 	Place of birth missing (living people) & 751 & Association football forwards & 409 \\
@@ -176,7 +178,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 				\Phi_{K-means} (C) = \sum_{i=1}^K \sum_{p \in C_i \cap P} d(p, c_i) \\
 			\end{equation}
 
-			Per il nostro progetto abbiamo utilizzato l'implementazione Java \emph{KMeans} di Spark \emph{mllib}, reperibile nella \href{https://spark.apache.org/docs/2.1.0/mllib-clustering.html#k-means}{documentazione} online.
+			Per il nostro progetto abbiamo utilizzato l'implementazione Java \emph{KMeans} di Spark \emph{mllib}, reperibile \href{https://spark.apache.org/docs/2.1.0/mllib-clustering.html#k-means}{online}.
 
 		\subsubsection{Latent Dirichlet Allocation}
 
@@ -188,38 +190,43 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	\subsection{Valutazioni del Clustering}
 
 		\subsubsection{Simplified Silhouette}
-			Silhouette è un metodo unsupervised per interpretare e validare un dato cluster.
+			\emph{Silhouette} è un metodo unsupervised per interpretare e validare un dato cluster.
 			In particolare questa tecnica calcola per ogni punto la distanza media dal proprio cluster e la minima distanza media dagli altri cluster, valutando così sia la coesione che la separazione dei cluster, e restituisce un valore compreso tra $-1$ e $1$.
-			Tale approccio tuttavia richiede tempo $\mathcal{O}(n^2)$, dove $n$ è la taglia dell'input.
-			Tuttavia questa complessità quadratica, considerata la taglia del nostro dataset e le risorse di calcolo a nostra disposizione, rende poco pratico l'utilizzo di tale tecnica.
+			
+			Tale approccio però richiede tempo $\mathcal{O}(n^2)$, dove $n$ è la taglia dell'input, e il calcolo diretto risulta impraticabile a causa della taglia del dataset e le risorse di calcolo a nostra disposizione.
 
-			Pertanto abbiamo provveduto a implementare e applicare una versione modificata che approssima questo l'algoritmo, denominata Simplified Silhouette \cite{sscmapreduce}.
-			Indicando con $a$ la distanza tra il punto considerato e il centro del proprio cluster e con $b$ la minima distanza tra il punto e gli altri centri del cluster, il Simplified Silhouette Coefficient è così definito:
+			Pertanto abbiamo provveduto a implementare e applicare una versione modificata che approssima questo l'algoritmo, denominata \emph{Simplified Silhouette}\cite{sscmapreduce}.
+			
+			Indicando con $a$ la distanza tra il punto considerato e il centro del proprio cluster e con $b$ la minima distanza tra il punto e gli altri centri del cluster, il {Simplified Silhouette Coefficient} è così definito:
 
 			\begin{equation} \begin{aligned} \label{eq:simplifiedSilhouette}
 				SSC = \frac{b - a}{ max(a, b) } = \frac{b - a}{b}
 			\end{aligned} \end{equation}
 
 			Si nota che il denominatore viene semplificato nel secondo passaggio.
-			Ciò è possibile perché, nel caso ad esempio di Kmeans, la distanza euclidea tra il punto e il suo centro sarà sempre minore della distanza tra il punto e un qualsiasi altro centroide.
-			Se così non fosse significherebbe che la distanza tra il punto considerato e il centroide di un altro cluster è minore che tra il punto e il centro del proprio cluster, ma questo è assurdo in quanto Kmeans forma i cluster proprio assegnando ogni punto al centroide più vicino.
+			Ciò è possibile perché, per definizione dell'algoritmo \emph{K-means}, la distanza euclidea tra il punto e il suo centro sarà sempre minore della distanza tra il punto e un qualsiasi altro centroide.
+			
+			%Se così non fosse significherebbe che la distanza tra il punto considerato e il centroide di un altro cluster è minore che tra il punto e il centro del proprio cluster, ma questo è assurdo in quanto Kmeans forma i cluster proprio assegnando ogni punto al centroide più vicino.
 
-			Questa approssimazione permette quindi di ottenere una buona stima di Silhouette \cite{ssc} e riduce la complessità dell'algoritmo a $\mathcal{O}(kn)$, dove $k$ è il numero di cluster e $n$ il numero di punti in input.
-			Tale fattore di miglioramento delle prestazioni si indebolisce tuttavia all'aumentare di $k$.
-			In particolare per $k \to n$ si ritorna a una complessità quadratica, tuttavia in generale si cerca un numero di cluster minore di $n$ e nel nostro caso permette un apprezzabile miglioramento di performance.
+			Questa approssimazione permette quindi di ottenere una buona stima di \emph{Silhouette}\cite{ssc} riducendo la complessità dell'algoritmo a $\mathcal{O}(kn)$, dove $k$ è il numero di cluster e $n$ il numero di punti in input.
+			
+			Tale fattore di miglioramento delle prestazioni si indebolisce però all'aumentare di $k$, ritornando per $k \to n$ a una complessità quadratica. 
+			Nel caso generale tuttavia si cerca un numero di cluster minore di $n$ e \emph{Simplified Silhouette} porta ad un apprezzabile miglioramento di performance.
 
-			I singoli score vengono poi mediati sulla taglia dell'input, generando così un'indicazione globale sulla bontà del clustering.
+			Considerando la media dei coefficienti $SSC$ sui vari punti del dataset si ottiene infine un'indicazione globale sulla bontà del clustering.
 
-			Un'ulteriore osservazione è il fatto che, con l'aumentare di $k$, il coefficiente calcolato con Silhouette, e lo stesso vale per Simplified Silhouette, tende a $1$ (il miglior punteggio possibile) e raggiunge effettivamente tale valore con $k = n$ in quanto in questo caso estremo la distanza di ogni punto dal proprio centro è nulla, essendo ogni elemento un cluster a sé stante e pertanto l'unico elemento del cluster.
-			Indicando con $d$ la distanza media tra il punto e il suo cluster e con $min\,d$ la minima distanza media tra il punto e gli altri cluster, si ha quindi che:
+			\smallbreak
+			Un'ulteriore osservazione è il fatto che, con l'aumentare di $k$, il punteggio calcolato sia con \emph{Silhouette} che con \emph{Simplified Silhouette} tende a $1$ (il miglior punteggio possibile) e raggiunge effettivamente tale valore con $k = n$.
+			In questo caso estremo ogni punto costituisce un cluster a sè stante e perciò $a$ si annulla portando a 1 il valore di $SSC$.
+			
+			Indicando con $d$ la distanza media tra il punto e il suo cluster e con $min(d)$ la minima distanza media tra il punto e gli altri cluster, si ha infatti che
 
-			\begin{equation} \begin{aligned} \label{eq:silhouetteToOne}
-				Silhouette = \frac{min\,d - d}{ max(d, min\,d) } \quad \xrightarrow [k \to n] \quad \\ 1
-			\end{aligned} \end{equation}
+			\begin{equation} \label{eq:silhouetteToOne}
+				Silhouette = \frac{min(d) - d}{ max(d, \,min(d)) } \quad \xrightarrow [k \to n] \quad ~~ 1 \end{equation}
 
-			Ciò può portare ad una certa difficoltà nell'utilizzo di Silhouette come strumento per individuare un $k$ ottimale, in quanto $k$ molto elevati sono portati ad ottenere punteggi molto buoni.
-			Tale problematica può essere affrontata introducendo ad esempio un peso al coefficiente restituito da Silhouette in maniera da evitare questa convergenza a $1$.
-			Dato che questa indagine esula dagli scopi di questo lavoro non abbiamo trattato oltre questo punto che tuttavia può essere oggetto di studi futuri.
+			Questo rende difficoltoso usare \emph{Silhouette} come strumento per individuare un $K$ ottimale, perché tende a provilegiare K elevati.
+			Tale problematica può essere affrontata introducendo un peso al coefficiente restituito da Silhouette in maniera da evitare questa convergenza a $1$.
+			Questa indagine esula tuttavia dagli scopi di questo lavoro non abbiamo trattato oltre questo punto che tuttavia può essere oggetto di studi futuri.
 
 		\subsubsection{Normalized Mutual Information} \label{sec:NMI}
 			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
@@ -233,17 +240,17 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Questa matrica è stata normalizzata in $(0, 1)$ per garantire un confronto alla pari tra clustering di dimensione diversa.
 
 			NMI viene quindi definita come
-			\begin{equation} \begin{aligned} \label{eq:NMI}
-				& NMI(\Omega, \Phi) = \frac
+			\begin{equation} \label{eq:NMI}
+				NMI(\Omega, \Phi) = \frac
 					{I(\Omega, \Phi)}
-					{\left[ H(\Omega) + H(\Phi)\right] / 2} \\
-				& \text{dove} \\
-				& I(\Omega, \Phi) =
+					{\left[ H(\Omega) + H(\Phi)\right] / 2}
+			\end{equation}
+			dove
+			$$ I(\Omega, \Phi) =
 					\sum_{\omega \in \Omega} \sum_{\phi \in \Phi}
-						P(\omega \cap \phi) \log \frac {P(\omega \cap \phi)} {P(\omega) P(\phi)} \\
-				& H(\Omega) = - \sum_{\omega \in \Omega} P(\omega) \log P(\omega) \\
-				& H(\Phi) = - \sum_{\phi \in \Phi} P(\phi) \log P(\phi) \\
-			\end{aligned} \end{equation}
+						P(\omega \cap \phi) \log \frac {P(\omega \cap \phi)} {P(\omega) P(\phi)} $$
+			$$ H(\Omega) = - \sum_{\omega \in \Omega} P(\omega) \log P(\omega) $$
+				$$ H(\Phi) = - \sum_{\phi \in \Phi} P(\phi) \log P(\phi) $$
 
 			All'atto pratico, come valore delle probabilità sono stati impegate stime a massima verosimiglianza, per esempio
 			\begin{equation*}
@@ -252,15 +259,18 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 					{ \text{numero di punti totali} }
 			\end{equation*}.
 
-			\bigbreak
+			\smallbreak
 
 			Purtroppo questa definizione non è direttamente applicabile al confronto tra cluster e categorie perché, mentre i clustering ottenuti con K-means e LDA sono delle effettive partizioni del dataset, non si può dire lo stesso delle categorie, dato che un articolo può possederne più di una.
-
+			\smallbreak
 			Il primo approccio per scogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} (vedi sezione \ref{sec:bag_of_words}) tra le categorie di ciascun articolo per eleggere la più rappresentativa.
 			Grazie a questo passaggio NMI può essere calcolata direttamente dalla sua definizione (equazione \ref{eq:NMI}).
-
+			\smallbreak
 			Il secondo approccio tenta invece di estendere NMI al caso di cluster che si sovrappongano l'uno all'altro, considerando quindi ogni classe $c$ con la sua complementare $\bar{c}$ una partizione dell'insieme dei punti.
 			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma.
+			
+			\smallbreak
+			I risultati sono presentati nella sezione seguente.
 
 \section{Risultati}
 
@@ -271,12 +281,12 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 		Questa osservazione è confermata dall'andamento della derivata della funzione obiettivo: essa raggiunge un tasso di incremento sostanzialmente nullo in prossimità del valore K=100.
 
 		\begin{figure}[!htb]
-			\hspace{-2cm}
+			\hspace{-1cm}
 			\begin{subfigure}{.5\textwidth}
 				\centering
 				\includegraphics[scale=.5]{../results/NMI-kmeans-categories.eps}
 			\end{subfigure}
-			\hspace{1.5cm}
+			\hspace{0.5cm}
 			\begin{subfigure}{.5\textwidth}
 				\centering
 				\includegraphics[scale=.5]{../results/KMeansDerivative.eps}
@@ -293,12 +303,12 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 		L'aumento di informazione al crescre di K ci suggerisce che aumentando il numero di cluster si ottiene un clustering più vicino alla suddivisione indotta dalle categorie, ma che il miglioramento è tanto meno apprezzabile quanto più si sale con il valore di K.
 
 		\begin{figure}[!htbp]
-			\hspace{-2cm}
+			\hspace{-1cm}
 			\begin{subfigure}{.5\textwidth}
 				\centering
 				\includegraphics[scale=.5]{../results/NMI-kmeans-ranked-categories.eps}
 			\end{subfigure}
-			\hspace{1.5cm}
+			\hspace{0.5cm}
 			\begin{subfigure}{.5\textwidth}
 				\centering
 				\includegraphics[scale=.5]{../results/NMI-kmeans-overlapping-categories.eps}
