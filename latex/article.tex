@@ -62,7 +62,7 @@
 
 \maketitle % Print the title/author/date block
 
-\newpage
+%\newpage
 
 %----------------------------------------------------------------------------------------
 %	INTRODUCTION
@@ -184,10 +184,39 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 	\subsection{Valutazioni del Clustering}
 
-		\subsubsection{Simple Silhouette}
-			Utilizzo della versione semplificata di Silhouette con i centroidi
-			Rimozione dei cluster con un solo articolo dal punteggio
-			Magari buttiamoci un peso a sta metrica
+		\subsubsection{Simplified Silhouette}
+			Silhouette è un metodo unsupervised per interpretare e validare un dato cluster.
+			In particolare questa tecnica calcola per ogni punto la distanza media dal proprio cluster e la minima distanza media dagli altri cluster, valutando così sia la coesione che la separazione dei cluster, e restituisce un valore compreso tra $-1$ e $1$.
+			Tale approccio tuttavia richiede tempo $\mathcal{O}(n^2)$, dove $n$ è la taglia dell'input.
+			Tuttavia questa complessità quadratica, considerata la taglia del nostro dataset e le risorse di calcolo a nostra disposizione, rende poco pratico l'utilizzo di tale tecnica.
+			
+			Pertanto abbiamo provveduto a implementare e applicare una versione modificata che approssima questo l'algoritmo, denominata Simplified Silhouette \cite{sscmapreduce}.
+			Indicando con $a$ la distanza tra il punto considerato e il centro del proprio cluster e con $b$ la minima distanza tra il punto e gli altri centri del cluster, il Simplified Silhouette Coefficient è così definito:
+ 
+			\begin{equation} \begin{aligned} \label{eq:simplifiedSilhouette}
+				SSC = \frac{b - a}{ max(a, b) } = \frac{b - a}{b}
+			\end{aligned} \end{equation}
+			
+			Si nota che il denominatore viene semplificato nel secondo passaggio.
+			Ciò è possibile perché, nel caso ad esempio di Kmeans, la distanza euclidea tra il punto e il suo centro sarà sempre minore della distanza tra il punto e un qualsiasi altro centroide.
+			Se così non fosse significherebbe che la distanza tra il punto considerato e il centroide di un altro cluster è minore che tra il punto e il centro del proprio cluster, ma questo è assurdo in quanto Kmeans forma i cluster proprio assegnando ogni punto al centroide più vicino.
+			
+			Questa approssimazione permette quindi di ottenere una buona stima di Silhouette \cite{ssc} e riduce la complessità dell'algoritmo a $\mathcal{O}(kn)$, dove $k$ è il numero di cluster e $n$ il numero di punti in input.
+			Tale fattore di miglioramento delle prestazioni si indebolisce tuttavia all'aumentare di $k$.
+			In particolare per $k \to n$ si ritorna a una complessità quadratica, tuttavia in generale si cerca un numero di cluster minore di $n$ e nel nostro caso permette un apprezzabile miglioramento di performance.
+			
+			I singoli score vengono poi mediati sulla taglia dell'input, generando così un'indicazione globale sulla bontà del clustering.
+			
+			Un'ulteriore osservazione è il fatto che, con l'aumentare di $k$, il coefficiente calcolato con Silhouette, e lo stesso vale per Simplified Silhouette, tende a $1$ (il miglior punteggio possibile) e raggiunge effettivamente tale valore con $k = n$ in quanto in questo caso estremo la distanza di ogni punto dal proprio centro è nulla, essendo ogni elemento un cluster a sé stante e pertanto l'unico elemento del cluster.
+			Indicando con $d$ la distanza media tra il punto e il suo cluster e con $min\,d$ la minima distanza media tra il punto e gli altri cluster, si ha quindi che:
+			
+			\begin{equation} \begin{aligned} \label{eq:silhouetteToOne}
+				Silhouette = \frac{min\,d - d}{ max(d, min\,d) } \quad \xrightarrow [k \to n] \quad \\ 1
+			\end{aligned} \end{equation}
+			
+			Ciò può portare ad una certa difficoltà nell'utilizzo di Silhouette come strumento per individuare un $k$ ottimale, in quanto $k$ molto elevati sono portati ad ottenere punteggi molto buoni.
+			Tale problematica può essere affrontata introducendo ad esempio un peso al coefficiente restituito da Silhouette in maniera da evitare questa convergenza a $1$.
+			Dato che questa indagine esula dagli scopi di questo lavoro non abbiamo trattato oltre questo punto che tuttavia può essere oggetto di studi futuri.
 
 		\subsubsection{Normalized Mutual Information}
 			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
@@ -258,7 +287,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			\label{fig:KMeansObj}
 		\end{figure}
 
-	\subsection{Validazione con Simple Silhouette}
+	\subsection{Validazione con Simplified Silhouette}
 		\begin{figure}[!htb]
 			\centering
 			\includegraphics[scale=.5]{../results/silhouette.eps}
@@ -297,6 +326,12 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 \bibitem{lda}
 	Blei, David M., Andrew Y. Ng, and Michael I. Jordan. "Latent dirichlet allocation." Journal of machine Learning research 3.Jan (2003): 993-1022.
+
+\bibitem{sscmapreduce}
+	Garcia, Kemilly Dearo, and Murilo Coelho Naldi. "Multiple parallel mapreduce k-means clustering with validation and selection." Intelligent Systems (BRACIS), 2014 Brazilian Conference on. IEEE, 2014.
+    
+\bibitem{ssc}
+	Eler, Danilo Medeiros, et al. "Simplified Stress and Simplified Silhouette Coefficient to a Faster Quality Evaluation of Multidimensional Projection Techniques and Feature Spaces." Information Visualisation (iV), 2015 19th International Conference on. IEEE, 2015.
 
 \end{thebibliography}
 
