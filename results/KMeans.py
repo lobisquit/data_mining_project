@@ -12,7 +12,7 @@ plt.ylabel('K-means objective function')
 plt.grid(which='both')
 plt.tight_layout()
 # plt.show()
-plt.savefig('NMI-kmeans.eps', format='eps')
+plt.savefig('KMeans.eps', format='eps')
 
 plt.figure('Kmeans obj derivative')
 derivative = []
