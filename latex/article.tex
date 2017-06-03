@@ -102,7 +102,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 	Per quanto concerne le categorie, una prima ispezione manuale rivela che esse sono alquanto arbitrarie e spesso così specifiche da essere associate ad un articolo soltanto.
 	Esempio di ciò sono le categorie "Roads on the National Register of Historic Places in Illinois", "United Nations Security Council resolutions concerning Sudan" e "Singaporean people of Yemeni descent".
-    C'è inoltre da sottolineare come ad ogni articolo siano spesso associate più di una categoria, con una media di 1.99 categorie per ogni voce del dataset.
+	C'è inoltre da sottolineare come ad ogni articolo siano spesso associate più di una categoria, con una media di 1.99 categorie per ogni voce del dataset.
 
     Un'analisi più approfondita sulla distribuzione delle categorie è riportata in figura \ref{fig:categories}.
     \begin{figure}[!htb]
@@ -135,21 +135,21 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 \section{Rappresentazione del Dataset}
 	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words} presenti nel testo e lemmatizzando le parole rimaste.
 
-	Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito http://www.ranks.nl/stopwords.
+	Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito \url{http://www.ranks.nl/stopwords}.
 	Questi termini vengono filtrati dal corpus in quanto portano un contenuto informativo sull'argomento dell'articolo pressoch\'{e} nullo.
 
-	La lemmatizzazione invece è stata eseguita utilizzando il $Lemmatizer$ di spark al fine di raggruppare assieme le variazioni semantiche delle parole.
+	La lemmatizzazione invece è stata eseguita utilizzando il $Lemmatizer$ di Spark al fine di raggruppare assieme le variazioni semantiche delle parole.
 
 	\subsection{VETTORIALIZZIONE DEGLI ARTICOLI}
 		Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare gli articoli di Wikipedia in vettori.
-		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome Word2Vec. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato, le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
+		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome \emph{Word2Vec}. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato, le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
 
 		Tale funzionalità è già implementata nella suite software di Spark, ma per sfruttarla al meglio è necessario settare alcuni parametri. Tra questi uno dei più importanti è la dimensione del vettore in uscita.
 		In letteratura si è valutato che una dimensionalità nel ordine dei 100/300\cite{w2vdim} risulta un buon compromesso tra prestazioni e capacità di descrivere il dataset.
 
-		Dopo aver allenato il modello Word2Vec sul nostro corpus di testi, trasformando così le singole parole in vettori, ad ogni articolo è stata associata la media vettoriale di tutte le parole presenti nel suo testo. Il \emph{Basic Linear Algebra Subprograms} di Spark ci ha permesso di eseguire questa operazione molto rapidamente.
+		Dopo aver allenato il modello \emph{Word2Vec} sul nostro corpus di testi, trasformando così le singole parole in vettori, ad ogni articolo è stata associata la media vettoriale di tutte le parole presenti nel suo testo. Il \emph{Basic Linear Algebra Subprograms} di Spark ci ha permesso di eseguire questa operazione molto rapidamente.
 
-	\subsection{BAG OF WORDS}
+	\subsection{BAG OF WORDS} \label{sec:bag_of_words}
 
 	L'algoritmo Bag of Words\cite{bagofwords} effettua la conversione degli articoli in vettori considerando le occorrenze dei termini in essi.
 	In particolare viene considerata come metrica la \textit{Term frequency-inverse document frequency} (Tf-Idf).
@@ -169,18 +169,21 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 		\subsubsection{Hopkins Statistic}
 			Riportiamo lo score che ci dice che il nostro dataset è ben clusterizzabile
 
-		\subsubsection{Kmeans}
-			Kmeans e il suo score con un bel grafico
+		\subsubsection{K-means}
+			Dato un insieme di punti $P \subset M$, dove $M$ è uno spazio metrico indotto da una funzione distanza $d$, l'algoritmo K-means punta a costruire una partizione $C = \{ C_1, ..., C_K \}$ con centri dei cluster $\{ c_1, ..., c_K\}$ che minimizzi la seguente funzione obiettivo.
 
-		\subsubsection{Altri metodi}
+			\begin{equation} \begin{align}
+				\Phi_{K-means} (C) = \sum_{i=1}^K \sum_{p \in C_i \cap P} d(p, c_i)
+			\end{align} \end{equation}
 
-			Abbiamo provato anche il clustering gerarchico e il Gaussian Mixture Model
-			ma non abbiamo abbastanza potenza di calcolo
+			Per il nostro progetto abbiamo utilizzato l'implementazione Java \emph{KMeans} di Spark \emph{mllib}, reperibile nella \href{https://spark.apache.org/docs/2.1.0/mllib-clustering.html#k-means}{documentazione} online.
 
 		\subsubsection{Latent Dirichlet Allocation}
 
 			Vediamo cosa viene fuori e un bel grafico
 
+		\subsubsection{Altri metodi}
+			La libreria \emph{mllib} contiene altre tecniche, tra cui \emph{Gaussian mixture} e \emph{Bisecting k-means}, ma esse si sono rivelate inapplicabili, la prima per l'eccessivo tempo di calcolo e la seconda perché affine al già citato \emph{K-means}, ottimizzando infatti la stessa funzione obiettivo.
 
 	\subsection{Valutazioni del Clustering}
 
@@ -224,22 +227,20 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 			Purtroppo questa definizione non è direttamente applicabile al confronto tra cluster e categorie perché, mentre i clustering ottenuti con K-means e LDA sono delle effettive partizioni del dataset, non si può dire lo stesso delle categorie, dato che un articolo può possederne più di una.
 
-			% TODO link o descrizione della IDF utilizzata
-			Il primo approccio per scogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} tra le categorie di ciascun articolo per eleggere la più rappresentativa.
-			Grazie a questo passaggio NMI viene calcolata come dalla sua definizione (equazione \ref{eq:NMI}).
+			Il primo approccio per scogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} (vedi sezione \ref{sec:bag_of_words}) tra le categorie di ciascun articolo per eleggere la più rappresentativa.
+			Grazie a questo passaggio NMI può essere calcolata direttamente dalla sua definizione (equazione \ref{eq:NMI}).
 
 			% TODO specificare meglio la normalizzazione
 			Il secondo approccio tenta invece di estendere NMI al caso di cluster che si sovrappongano l'uno all'altro, considerando quindi ogni classe $c$ con la sua complementare $\bar{c}$ una partizione dell'insieme dei punti.
-			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma. A causa di questa passaggio si perde la normalizzazione tra 0 e 1: i risultati sono comunque confrontabili, perché risultano tutti multipli di un fattore che è funzione della distribuzione delle categoerie, quindi indipendente dalle  tecniche di clustering.
+			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma. A causa di questa passaggio si perde la normalizzazione tra 0 e 1, ma i risultati sono comunque confrontabili, perché scalati secondo un fattore caretteristico della distribuzione delle categorie.
 
 \section{Risultati}
 
 	\subsection{Numero di cluster}
 		Il clustering K-means risulta il più semplice e rapido da ottenere e per questo motivo abbiamo deciso di ispezionare un ampio range di valori per K, numero di cluster.
 
-		La funzione obiettivo cala continuamente al variare del numero di cluster, come da figura \ref{fig:KMeansObj}: questa osservazione è confermata dall'andamento della derivata della funzione obiettivo rispetto a K. Essa raggiunge un tasso di incremento trascurabile in prossimità del valore K=100.
-
-		Perciò con la tecnica di clustering LDA ci siamo concentrati su valori di K compresi tra 50 e 150.
+		La funzione obiettivo cala continuamente al variare del numero di cluster, come da figura \ref{fig:KMeansObj}, ma il calo diventa sempre più trascurabile al crescere di K.
+		Questa osservazione è confermata dall'andamento della derivata della funzione obiettivo: essa raggiunge un tasso di incremento sostanzialmente nullo in prossimità del valore K=100.
 
 		\begin{figure}[!htb]
 			\hspace{-2cm}
@@ -258,21 +259,23 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			\label{fig:KMeansObj}
 		\end{figure}
 
+	Per questo motivo nelle analisi successive ci siamo concentrati su valori di K compresi tra 50 e 150, che risultano trattabili anche con l'algoritmo LDA.
+
+	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
+		\begin{figure}[!htb]
+			\centering
+			%TODO: dava un errore..
+			\includegraphics[scale=.5]{../results/NMI-kmeans-categories.eps}
+			\caption{Informazione mutua tra K-means e il clustering indotto dalle categorie.}
+			\label{fig:NMI-kmeans-categories}
+		\end{figure}
+
 	\subsection{Validazione con Simple Silhouette}
 		\begin{figure}[!htb]
 			\centering
 			\includegraphics[scale=.5]{../results/silhouette.eps}
 			\caption{Silhouette}
 			\label{fig:silhouette}
-		\end{figure}
-
-	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
-		\begin{figure}[!htb]
-			\centering
-			%TODO: dava un errore..
-			%\includegraphics[scale=.5]{../results/NMI-kmeans-categories.eps}
-			\caption{Informazione mutua tra K-means e il clustering indotto dalle categorie.}
-			\label{fig:NMI-kmeans-categories}
 		\end{figure}
 
 \section{Conclusioni}
