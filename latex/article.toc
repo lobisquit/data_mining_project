@@ -1,4 +1,0 @@
-\contentsline {section}{\numberline {1}Dataset e obiettivi}{2}{section.1}
-\contentsline {section}{\numberline {2}Lavoro Svolto}{2}{section.2}
-\contentsline {section}{\numberline {3}Risultati}{2}{section.3}
-\contentsline {section}{\numberline {4}Conclusioni}{2}{section.4}
