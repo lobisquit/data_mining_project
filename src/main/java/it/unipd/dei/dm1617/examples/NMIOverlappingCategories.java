@@ -139,7 +139,7 @@ public class NMIOverlappingCategories {
           switch (clusteringTecnique) {
               case "KMeans":
                 KMeansModel Kmodel = KMeansModel.load(sc.sc(), modelPath);
-                clusterIDs = Kmodel.predict(wikiVectors);
+                clusterIDs = Kmodel.predict(vectors);
                 break;
 
               case "LDA":
