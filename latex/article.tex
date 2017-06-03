@@ -176,7 +176,19 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	\subsection{Tecniche di Clustering}
 
 		\subsubsection{Hopkins Statistic}
-			Riportiamo lo score che ci dice che il nostro dataset è ben clusterizzabile
+			Dopo aver effettuato la vettorializzazione dei documenti, si \`{e} cercato di stimare l'effettiva tendenza al clustering 
+			dei dati in nostro possesso.
+			
+			Per far ci\`{o} abbiamo utilizzato la statistica di Hopkins\cite{hopkins}.
+			Il dataset randomizzato necessario per la comparazione \`{e} stato generato basandosi sul dominio 
+			delle componenti dei vettori restituiti dalla vettorializzazione degli articoli mediante algoritmo \emph{Word2Vec}.
+			
+			Sono state eseguite svariate misurazioni di tale metrica utilizzando come sample una frazione da $0.1$ a $0.4$ dell'intero dataset.
+			In tutti i test la statistica di Hopkins rilevata \`{e} stata compresa tra $0.011$ e $0.012$.
+			
+			In ogni caso i risultati testimoniano una forte tendenza al clustering dei dati in nostro possesso.
+			
+			
 
 		\subsubsection{K-means}
 			Dato un insieme di punti $P \subset M$, dove $M$ è uno spazio metrico indotto da una funzione distanza $d$, l'algoritmo K-means punta a costruire una partizione $C = \{ C_1, ..., C_K \}$ con centri dei cluster $\{ c_1, ..., c_K\}$ che minimizzi la seguente funzione obiettivo.
@@ -361,6 +373,9 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 \bibitem{bagofwords}
 	Harris, Zellig S. "Distributional structure." Word 10.2-3 (1954): 146-162.
 
+\bibitem{hopkins}
+	Banerjee, Amit, and Rajesh N. Dave. "Validating clusters using the Hopkins statistic." Fuzzy systems, 2004. Proceedings. 2004 IEEE international conference on. Vol. 1. IEEE, 2004.
+	
 \bibitem{lda}
 	Blei, David M., Andrew Y. Ng, and Michael I. Jordan. "Latent dirichlet allocation." Journal of machine Learning research 3.Jan (2003): 993-1022.
 
