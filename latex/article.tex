@@ -40,6 +40,8 @@
 
 \hyphenation{Fortran hy-phen-ation} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
 
+\newtheorem*{hopkins}{Hopkins statistic} % Theorems
+
 %----------------------------------------------------------------------------------------
 %	TITLE AND AUTHOR(S)
 %----------------------------------------------------------------------------------------
@@ -177,7 +179,25 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 		\subsubsection{Hopkins Statistic}
 			Dopo aver effettuato la vettorializzazione dei documenti, si è cercato di stimare l'effettiva tendenza al clustering dei dati in nostro possesso utilizzando la statistica di Hopkins\cite{hopkins}.
-
+			
+			\vspace{5mm}
+			\hfill\begin{minipage}{\dimexpr\textwidth-1cm}
+			\begin{hopkins}
+				Sia $X$ l'insieme degli $n$ punti del dataset, e se ne consideri un sottoinsieme random $\{x_1,...,x_m\}$ con $m \ll n$.
+				Sia poi $Y$ un insieme generato di $m$ punti uniformemente distribuiti.
+				Si definiscono quindi le distanze:
+				\begin{itemize}
+					\item $u_i$, distanza di $y_i \in Y$ dal pi\`{u} vicino punto di $X$
+					\item $w_i$, distanza di $x_i \in X$ dal pi\`{u} vicino punto di $X$
+				\end{itemize}
+				La statistica di Hopkins \`{e} allora:
+				
+				$$H=\frac{\sum_{i=1}^m{u_i^d}}{\sum_{i=1}^m{u_i^d}+\sum_{i=1}^m{w_i^d}}$$
+			\end{hopkins}
+			\xdef\tpd{\the\prevdepth}
+			\end{minipage}
+			\vspace{5mm}
+			
 			Il dataset randomizzato necessario per la comparazione è stato generato basandosi sul dominio delle componenti dei vettori restituiti dalla vettorializzazione degli articoli mediante algoritmo \emph{Word2Vec}.
 
 			Sono state eseguite svariate misurazioni di tale metrica utilizzando come sample una frazione da $0.1$ a $0.4$ dell'intero dataset e la statistica di Hopkins rilevata è stata compresa tra $0.011$ e $0.012$, valori che testimoniano una forte tendenza al clustering dei dati in nostro possesso.
