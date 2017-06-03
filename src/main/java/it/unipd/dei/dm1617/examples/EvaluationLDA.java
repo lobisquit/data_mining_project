@@ -69,23 +69,27 @@ public class EvaluationLDA {
         double logLikelihood = model.logLikelihood();
         System.out.println("The logLikelihood size is: "+logLikelihood);
 
-        /*
         // Print some topics together with their most characterizing lemmas
         Tuple2<int[], double[]>[] describeTopics = model.describeTopics(10);
-        for (int i = 0; i < 30; i++) {
-            Tuple2<int[], double[]> topic = describeTopics[i];
-            System.out.print("Topic " + i + ":");
-            for (int j = 0; j < topic._1.length; j++) {
-                System.out.print(" " + lemmas[topic._1[j]]);
+
+        try{
+            PrintWriter writer = new PrintWriter("./output/LDA-topicsdescription-k"+k+"-vocab3000.txt", "UTF-8");
+            for (int i = 0; i < k; i++) {
+                Tuple2<int[], double[]> topic = describeTopics[i];
+                writer.print("Topic " + i + ":");
+                for (int j = 0; j < topic._1.length; j++) {
+                    writer.print(" " + lemmas[topic._1[j]]);
+                }
+                writer.print("\n");
             }
-            System.out.println("\n");
+            writer.close();
+        } catch (IOException e) {
+            System.err.println("Error writing the topics descriptions");
+            e.printStackTrace();
         }
-        */
 
         JavaRDD<Tuple3<Long, int[], int[]>> topicAssignments = model.javaTopicAssignments();
-
         List<Tuple3<Long, int[], int[]>> collection = topicAssignments.collect();
-
         try{
             PrintWriter writer = new PrintWriter("./output/LDA-assignement-k"+k+"-vocab3000.csv", "UTF-8");
             writer.println("ArticleID,ClusterID");
@@ -94,6 +98,7 @@ public class EvaluationLDA {
                 writer.println(tuple._1()+","+tuple._3()[0]);
             }
             writer.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
