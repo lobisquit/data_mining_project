@@ -10,10 +10,10 @@
 \BOOKMARK [3][-]{subsubsection.4.1.3}{4.1.3 Latent Dirichlet Allocation}{subsection.4.1}% 10
 \BOOKMARK [3][-]{subsubsection.4.1.4}{4.1.4 Altri metodi}{subsection.4.1}% 11
 \BOOKMARK [2][-]{subsection.4.2}{4.2 Valutazioni del Clustering}{section.4}% 12
-\BOOKMARK [3][-]{subsubsection.4.2.1}{4.2.1 Simple Silhouette}{subsection.4.2}% 13
+\BOOKMARK [3][-]{subsubsection.4.2.1}{4.2.1 Simplified Silhouette}{subsection.4.2}% 13
 \BOOKMARK [3][-]{subsubsection.4.2.2}{4.2.2 Normalized Mutual Information}{subsection.4.2}% 14
 \BOOKMARK [1][-]{section.5}{5 Risultati}{}% 15
 \BOOKMARK [2][-]{subsection.5.1}{5.1 Numero di cluster}{section.5}% 16
 \BOOKMARK [2][-]{subsection.5.2}{5.2 Confronto tra i Cluster ottenuti con Normalize Mutual Information}{section.5}% 17
-\BOOKMARK [2][-]{subsection.5.3}{5.3 Validazione con Simple Silhouette}{section.5}% 18
+\BOOKMARK [2][-]{subsection.5.3}{5.3 Validazione con Simplified Silhouette}{section.5}% 18
 \BOOKMARK [1][-]{section.6}{6 Conclusioni}{}% 19

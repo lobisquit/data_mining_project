@@ -182,10 +182,30 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 		\subsubsection{Latent Dirichlet Allocation}
 
-			Vediamo cosa viene fuori e un bel grafico
-
+			La Latent Dirichlet Allocation (LDA)\cite{lda} \'{e} un modello generativo statistico che considera ogni documento 
+			come il risultato della sovrapposizione di più topic, ognuno dei quali \'{e} caratterizzato da un insieme di parole.
+			Tale processo \'{e} stato applicato alla rappresentazione per bag of words degli articoli.
+			
+			Analogamente a k-means pu\'{o} essere utilizzata come algoritmo di clustering unsupervised associando gli articoli al topic 
+			avente influenza più alta nel loro corpus.
+			
+			Tra i vantaggi principali dell'utilizzo di questa tecnica applicata all'analisi testuale vi \'{e} sicuramente la 
+			possibilit\'{a} di caratterizzare il tema dei topic delineati esaminando le parole con incidenza più alta in ogni gruppo.
+			
+			%TODO: Inserire tabella con un po' di topic significativi
+			
+			Nel nostro lavoro abbiamo scelto di usare 100 iterazioni per l'algoritmo in quanto oltre tale numero i miglioramenti 
+			nella qualit\'{a} del clustering non sono rilevanti \cite{ldaiterations}.
+			
+			Come metrica che definisce la bont\'{a} della categorizzazione abbiamo scelto la log-likelihood \cite{ldaevaluation}.
+			
+			Data la complessit\'{a} computazionale di questo metodo ci siamo limitati ad effettuare gli esperimenti con un numero di 
+			topic $k=80$, seguendo l'indicazione offerta dalle tecniche presentate in precedenza.
+			%TODO: valutare se metere anche altri k
+		
 		\subsubsection{Altri metodi}
 			La libreria \emph{mllib} contiene altre tecniche, tra cui \emph{Gaussian mixture} e \emph{Bisecting k-means}, ma esse si sono rivelate inapplicabili, la prima per l'eccessivo tempo di calcolo e la seconda perché affine al già citato \emph{K-means}, ottimizzando infatti la stessa funzione obiettivo.
+
 
 	\subsection{Valutazioni del Clustering}
 
@@ -347,6 +367,15 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 \bibitem{lda}
 	Blei, David M., Andrew Y. Ng, and Michael I. Jordan. "Latent dirichlet allocation." Journal of machine Learning research 3.Jan (2003): 993-1022.
+
+\bibitem{ldainterpretation}
+	Chang, Jonathan, et al. "Reading tea leaves: How humans interpret topic models." Nips. Vol. 31. 2009.
+	
+\bibitem{ldaevaluation}
+	Griffiths, Thomas L., and Mark Steyvers. "Finding scientific topics." Proceedings of the National academy of Sciences 101.suppl 1 (2004): 5228-5235.
+
+\bibitem{ldaiterations}	
+Wei, Xing, and W. Bruce Croft. "LDA-based document models for ad-hoc retrieval." Proceedings of the 29th annual international ACM SIGIR conference on Research and development in information retrieval. ACM, 2006.
 
 \bibitem{sscmapreduce}
 	Garcia, Kemilly Dearo, and Murilo Coelho Naldi. "Multiple parallel mapreduce k-means clustering with validation and selection." Intelligent Systems (BRACIS), 2014 Brazilian Conference on. IEEE, 2014.
