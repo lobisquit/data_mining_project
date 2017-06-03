@@ -31,9 +31,9 @@
 \input{structure.tex} % Include the structure.tex file which specified the document structure and layout
 \usepackage[cm]{fullpage}
 \usepackage[
-	bottom=0.5in, 
-	top=   0.5in, 
-	left=  0.5in, 
+	bottom=0.5in,
+	top=   0.5in,
+	left=  0.5in,
 	right= 0.5in
 ]{geometry}
 %\renewcommand*\rmdefault{cmr}
@@ -176,19 +176,11 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	\subsection{Tecniche di Clustering}
 
 		\subsubsection{Hopkins Statistic}
-			Dopo aver effettuato la vettorializzazione dei documenti, si \`{e} cercato di stimare l'effettiva tendenza al clustering 
-			dei dati in nostro possesso.
-			
-			Per far ci\`{o} abbiamo utilizzato la statistica di Hopkins\cite{hopkins}.
-			Il dataset randomizzato necessario per la comparazione \`{e} stato generato basandosi sul dominio 
-			delle componenti dei vettori restituiti dalla vettorializzazione degli articoli mediante algoritmo \emph{Word2Vec}.
-			
-			Sono state eseguite svariate misurazioni di tale metrica utilizzando come sample una frazione da $0.1$ a $0.4$ dell'intero dataset.
-			In tutti i test la statistica di Hopkins rilevata \`{e} stata compresa tra $0.011$ e $0.012$.
-			
-			In ogni caso i risultati testimoniano una forte tendenza al clustering dei dati in nostro possesso.
-			
-			
+			Dopo aver effettuato la vettorializzazione dei documenti, si è cercato di stimare l'effettiva tendenza al clustering dei dati in nostro possesso utilizzando la statistica di Hopkins\cite{hopkins}.
+
+			Il dataset randomizzato necessario per la comparazione è stato generato basandosi sul dominio delle componenti dei vettori restituiti dalla vettorializzazione degli articoli mediante algoritmo \emph{Word2Vec}.
+
+			Sono state eseguite svariate misurazioni di tale metrica utilizzando come sample una frazione da $0.1$ a $0.4$ dell'intero dataset e la statistica di Hopkins rilevata è stata compresa tra $0.011$ e $0.012$, valori che testimoniano una forte tendenza al clustering dei dati in nostro possesso.
 
 		\subsubsection{K-means}
 			Dato un insieme di punti $P \subset M$, dove $M$ è uno spazio metrico indotto da una funzione distanza $d$, l'algoritmo K-means punta a costruire una partizione $C = \{ C_1, ..., C_K \}$ con centri dei cluster $\{ c_1, ..., c_K\}$ che minimizzi la seguente funzione obiettivo.
@@ -202,16 +194,16 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 		\subsubsection{Latent Dirichlet Allocation}
 
 			Latent Dirichlet Allocation (LDA)\cite{lda} è un modello generativo statistico che considera ogni documento come il risultato della sovrapposizione di più topic, individuati da un insieme di parole.
-			
+
 			Analogamente a k-means può essere utilizzata come algoritmo di clustering unsupervised associando gli articoli al topic avente influenza più alta nel loro corpus: questo permette non solo di individuare gruppi di articoli, ma di associare ad essi un contesto semantico.
-			
+
 			%TODO: Inserire tabella con un po' di topic significativi
-			
+
 			Nel nostro lavoro abbiamo scelto di usare 100 iterazioni per l'algoritmo in quanto oltre tale numero i miglioramenti nella qualità del clustering non sono rilevanti\cite{ldaiterations}, mentre come funzione obiettivo abbiamo scelto la log-likelihood\cite{ldaevaluation}.
-			
+
 			La complessità computazionale di questo metodo ci ha però limitati ad effettuare gli esperimenti con un numero di topic ridotto ($k=50,\,70,\,80$), avvicindandoci però a quanto suggerito da da \emph{K-means}.
 			%TODO: valutare se metere anche altri k
-		
+
 		\subsubsection{Altri metodi}
 			La libreria \emph{mllib} contiene altre tecniche, tra cui \emph{Gaussian mixture} e \emph{Bisecting k-means}, ma esse si sono rivelate inapplicabili, la prima per l'eccessivo tempo di calcolo e la seconda perché affine al già citato \emph{K-means}, ottimizzando infatti la stessa funzione obiettivo.
 
@@ -221,11 +213,11 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 		\subsubsection{Simplified Silhouette}
 			\emph{Silhouette} è un metodo unsupervised per interpretare e validare un dato cluster.
 			In particolare questa tecnica calcola per ogni punto la distanza media dal proprio cluster e la minima distanza media dagli altri cluster, valutando così sia la coesione che la separazione dei cluster, e restituisce un valore compreso tra $-1$ e $1$.
-			
+
 			Tale approccio però richiede tempo $\mathcal{O}(n^2)$, dove $n$ è la taglia dell'input, e il calcolo diretto risulta impraticabile a causa della taglia del dataset e le risorse di calcolo a nostra disposizione.
 
 			Pertanto abbiamo provveduto a implementare e applicare una versione modificata che approssima questo l'algoritmo, denominata \emph{Simplified Silhouette}\cite{sscmapreduce}.
-			
+
 			Indicando con $a$ la distanza tra il punto considerato e il centro del proprio cluster e con $b$ la minima distanza tra il punto e gli altri centri del cluster, il {Simplified Silhouette Coefficient} è così definito:
 
 			\begin{equation} \begin{aligned} \label{eq:simplifiedSilhouette}
@@ -234,12 +226,12 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 			Si nota che il denominatore viene semplificato nel secondo passaggio.
 			Ciò è possibile perché, per definizione dell'algoritmo \emph{K-means}, la distanza euclidea tra il punto e il suo centro sarà sempre minore della distanza tra il punto e un qualsiasi altro centroide.
-			
+
 			%Se così non fosse significherebbe che la distanza tra il punto considerato e il centroide di un altro cluster è minore che tra il punto e il centro del proprio cluster, ma questo è assurdo in quanto Kmeans forma i cluster proprio assegnando ogni punto al centroide più vicino.
 
 			Questa approssimazione permette quindi di ottenere una buona stima di \emph{Silhouette}\cite{ssc} riducendo la complessità dell'algoritmo a $\mathcal{O}(Kn)$, dove $K$ è il numero di cluster e $n$ il numero di punti in input.
-			
-			Tale fattore di miglioramento delle prestazioni si indebolisce però all'aumentare di $K$, ritornando per $K \to n$ a una complessità quadratica. 
+
+			Tale fattore di miglioramento delle prestazioni si indebolisce però all'aumentare di $K$, ritornando per $K \to n$ a una complessità quadratica.
 			Nel caso generale tuttavia si cerca un numero di cluster minore di $n$ e \emph{Simplified Silhouette} porta ad un apprezzabile miglioramento di performance.
 
 			Considerando la media dei coefficienti $SSC$ sui vari punti del dataset si ottiene infine un'indicazione globale sulla bontà del clustering.
@@ -247,7 +239,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			\smallbreak
 			Un'ulteriore osservazione è il fatto che, con l'aumentare di $K$, il punteggio calcolato sia con \emph{Silhouette} che con \emph{Simplified Silhouette} tende a $1$ (il miglior punteggio possibile) e raggiunge effettivamente tale valore con $K = n$.
 			In questo caso estremo ogni punto costituisce un cluster a sè stante e perciò $a$ si annulla portando a 1 il valore di $SSC$.
-			
+
 			Indicando con $d$ la distanza media tra il punto e il suo cluster e con $min(d)$ la minima distanza media tra il punto e gli altri cluster, si ha infatti che
 
 			\begin{equation} \label{eq:silhouetteToOne}
@@ -258,7 +250,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Questa indagine esula tuttavia dagli scopi di questo lavoro non abbiamo trattato oltre questo punto che tuttavia può essere oggetto di studi futuri.
 
 		\subsubsection{Normalized Mutual Information} \label{sec:NMI}
-			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due. 
+			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
 			Essa può essere impiegata per valutare quanto due partizioni, o \emph{clustering}, concordano nel suddividere un set di punti \cite{Manning}.
 
 			Per fare questo, ad ogni cluster è stata associata una variabile indicatrice $\omega$, che assume valore 1 se il punto considerato appartiene al cluster e 0 altrimenti.
@@ -267,7 +259,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Con questa descrizione del problema è possibile calcolare l'informazione mutua tra due distinti clustering $\Omega$ e $\Phi$.
 			Questa matrica è stata normalizzata in $(0, 1)$ per garantire un confronto alla pari tra clustering di dimensione diversa.
 			NMI viene quindi definita come
-			
+
 			\begin{equation} \label{eq:NMI}
 				NMI(\Omega, \Phi) = \frac
 					{I(\Omega, \Phi)}
@@ -294,9 +286,9 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Grazie a questo passaggio NMI può essere calcolata direttamente dalla sua definizione (equazione \ref{eq:NMI}).
 			\smallbreak
 			Il secondo approccio tenta invece di estendere NMI al caso di cluster che si sovrappongano l'uno all'altro, considerando quindi ogni classe $c$ con la sua complementare $\bar{c}$ una partizione dell'insieme dei punti.
-			
+
 			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma.
-			
+
 			\smallbreak
 			I risultati sono presentati nella sezione seguente.
 
@@ -375,17 +367,17 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 \bibitem{hopkins}
 	Banerjee, Amit, and Rajesh N. Dave. "Validating clusters using the Hopkins statistic." Fuzzy systems, 2004. Proceedings. 2004 IEEE international conference on. Vol. 1. IEEE, 2004.
-	
+
 \bibitem{lda}
 	Blei, David M., Andrew Y. Ng, and Michael I. Jordan. "Latent dirichlet allocation." Journal of machine Learning research 3.Jan (2003): 993-1022.
 
 \bibitem{ldainterpretation}
 	Chang, Jonathan, et al. "Reading tea leaves: How humans interpret topic models." Nips. Vol. 31. 2009.
-	
+
 \bibitem{ldaevaluation}
 	Griffiths, Thomas L., and Mark Steyvers. "Finding scientific topics." Proceedings of the National academy of Sciences 101.suppl 1 (2004): 5228-5235.
 
-\bibitem{ldaiterations}	
+\bibitem{ldaiterations}
 Wei, Xing, and W. Bruce Croft. "LDA-based document models for ad-hoc retrieval." Proceedings of the 29th annual international ACM SIGIR conference on Research and development in information retrieval. ACM, 2006.
 
 \bibitem{sscmapreduce}
