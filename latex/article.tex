@@ -139,7 +139,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words} presenti nel testo e lemmatizzando le parole rimaste.
 
 	Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito \url{http://www.ranks.nl/stopwords}.
-	Questi termini vengono filtrati dal corpus in quanto portano un contenuto informativo sull'argomento dell'articolo pressoch\'{e} nullo.
+	Questi termini vengono filtrati dal corpus in quanto portano un contenuto informativo sull'argomento dell'articolo pressochè nullo.
 
 	La lemmatizzazione invece è stata eseguita utilizzando il $Lemmatizer$ di Spark al fine di raggruppare assieme le variazioni semantiche delle parole.
 
@@ -183,25 +183,15 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 		\subsubsection{Latent Dirichlet Allocation}
 
-			La Latent Dirichlet Allocation (LDA)\cite{lda} \'{e} un modello generativo statistico che considera ogni documento 
-			come il risultato della sovrapposizione di più topic, ognuno dei quali \'{e} caratterizzato da un insieme di parole.
-			Tale processo \'{e} stato applicato alla rappresentazione per bag of words degli articoli.
+			Latent Dirichlet Allocation (LDA)\cite{lda} è un modello generativo statistico che considera ogni documento come il risultato della sovrapposizione di più topic, individuati da un insieme di parole.
 			
-			Analogamente a k-means pu\'{o} essere utilizzata come algoritmo di clustering unsupervised associando gli articoli al topic 
-			avente influenza più alta nel loro corpus.
-			
-			Tra i vantaggi principali dell'utilizzo di questa tecnica applicata all'analisi testuale vi \'{e} sicuramente la 
-			possibilit\'{a} di caratterizzare il tema dei topic delineati esaminando le parole con incidenza più alta in ogni gruppo.
+			Analogamente a k-means può essere utilizzata come algoritmo di clustering unsupervised associando gli articoli al topic avente influenza più alta nel loro corpus: questo permette non solo di individuare gruppi di articoli, ma di associare ad essi un contesto semantico.
 			
 			%TODO: Inserire tabella con un po' di topic significativi
 			
-			Nel nostro lavoro abbiamo scelto di usare 100 iterazioni per l'algoritmo in quanto oltre tale numero i miglioramenti 
-			nella qualit\'{a} del clustering non sono rilevanti \cite{ldaiterations}.
+			Nel nostro lavoro abbiamo scelto di usare 100 iterazioni per l'algoritmo in quanto oltre tale numero i miglioramenti nella qualità del clustering non sono rilevanti\cite{ldaiterations}, mentre come funzione obiettivo abbiamo scelto la log-likelihood\cite{ldaevaluation}.
 			
-			Come metrica che definisce la bont\'{a} della categorizzazione abbiamo scelto la log-likelihood \cite{ldaevaluation}.
-			
-			Data la complessit\'{a} computazionale di questo metodo ci siamo limitati ad effettuare gli esperimenti con un numero di 
-			topic $k=80$, seguendo l'indicazione offerta dalle tecniche presentate in precedenza.
+			La complessità computazionale di questo metodo ci ha però limitati ad effettuare gli esperimenti con un numero di topic ridotto ($k=50,\,70,\,80$), avvicindandoci però a quanto suggerito da da \emph{K-means}.
 			%TODO: valutare se metere anche altri k
 		
 		\subsubsection{Altri metodi}
