@@ -116,11 +116,19 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
     Un'analisi più approfondita sulla distribuzione delle categorie è riportata in figura \ref{fig:categories}.
     \begin{figure}[!htb]
+		\hspace{-4.5cm}
+			\begin{subfigure}{.5\textwidth}
 			\centering
-			\includegraphics[scale=.5]{Figures/categories.png}
-			\caption{Distribuzione delle categorie. Nota: per rendere il grafico leggibile il picco finale raggruppa il numero di categorie con cento o più articoli.}
-			\label{fig:categories}
-		\end{figure}
+			\includegraphics[scale=.5]{categoriesCake.png}
+			\end{subfigure}
+		\hspace{0.5cm}
+			\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[scale=.5]{categories.png}
+			\end{subfigure}
+		\caption{Distribuzione delle categorie per numero di articoli. Nota: per rendere il grafico di destra leggibile il picco finale raggruppa il numero di categorie con cento o più articoli.}
+		\label{fig:categories}
+	\end{figure}
 
 	L'analisi effettuata rivela infatti che, sul totale di 198.609 distinte categorie presenti nel dataset, circa due terzi (precisamente 134.524) di queste sono uniche, ovvero sono associate ad un solo articolo.
 	Dato che queste non portano alcun contenuto informativo utile alla clusterizzazione, abbiamo provveduto ad escludere tali categorie dalle successive analisi.
@@ -340,7 +348,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
 		Come si puo notare in figura \ref{fig:NMI-kmeans-categories}, l'andamento dell'informazione mutua del clustering rispetto alle categorie risulta analogo per entrambi gli approcci impiegati, descritti nella sezione \ref{sec:NMI}.
 
-		L'aumento di informazione al crescre di K ci suggerisce che aumentando il numero di cluster il clustering si avvicina alla suddivisione indotta dalle categorie, ma che questo approssimarsi è tanto meno apprezzabile quanto più si sale con il valore di K.
+		L'aumento di informazione al crescere di K ci suggerisce che aumentando il numero di cluster il clustering si avvicina alla suddivisione indotta dalle categorie, ma che questo approssimarsi è tanto meno apprezzabile quanto più si sale con il valore di K.
 
 		\begin{figure}[!htbp]
 			\hspace{-1cm}
@@ -358,11 +366,25 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 		\end{figure}
 
 	\subsection{Validazione con Simplified Silhouette}
+		Nel grafico \ref{fig:silhouetteValidation} sono riportati i valori per Simplified Silhouette, calcolati sui cluster generati da K-means al variare del numero di cluster.
+		Si può notare come lo score, dopo un assestamento iniziale per cluster molto piccoli aumenti in maniera lineare arrivando ad uno score che si avvicina a $1$.
+		Come riportato in precedenza tuttavia questo è dovuto più alla formulazione di Silhouette, che tende a $1$ per valore di $k$ vicino ad $n$, piuttosto che per un vero miglioramento del clustering.
+        
+		Si può comunque apprezzare una certa diminuzione della variazione della derivata per valori intorno a $k = 100$, pur rimanendo il fatto che in questo caso questa tecnica non porta da sola a risultati definitivi.
+    
 		\begin{figure}[!htb]
-			\centering
-			%\includegraphics[scale=.5]{../results/silhouette.eps}
-			\caption{Silhouette}
-			\label{fig:silhouette}
+			\hspace{-1cm}
+				\begin{subfigure}{.5\textwidth}
+				\centering
+				\includegraphics[scale=.5]{simplifiedSilhouette.eps}
+				\end{subfigure}
+			\hspace{0.5cm}
+				\begin{subfigure}{.5\textwidth}
+				\centering
+				\includegraphics[scale=.5]{simplifiedSilhouetteDerivative.eps}
+				\end{subfigure}
+			\caption{Punteggio di Simplified Silhouette al variare di K e andamento della sua derivata.}
+			\label{fig:silhouetteValidation}
 		\end{figure}
 
 \section{Conclusioni}
