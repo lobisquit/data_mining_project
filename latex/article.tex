@@ -29,7 +29,8 @@
 ]{scrartcl}
 
 \input{structure.tex} % Include the structure.tex file which specified the document structure and layout
-\usepackage{fullpage}
+\usepackage[cm]{fullpage}
+%\renewcommand*\rmdefault{cmr}
 
 \hyphenation{Fortran hy-phen-ation} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
 
@@ -37,7 +38,7 @@
 %	TITLE AND AUTHOR(S)
 %----------------------------------------------------------------------------------------
 
-\title{\normalfont\spacedallcaps{Generazione delle categorie di wikipedia attraverso il clustering}} % The article title
+\title{\normalfont\spacedallcaps{clustering di wikipedia e relazione con le categorie}} % The article title
 
 \author{\spacedlowsmallcaps{Cazzaro Dalla Cia Lovisotto Vianello}}
 
@@ -142,7 +143,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 	La lemmatizzazione invece è stata eseguita utilizzando il $Lemmatizer$ di Spark al fine di raggruppare assieme le variazioni semantiche delle parole.
 
-	\subsection{VETTORIALIZZIONE DEGLI ARTICOLI}
+	\subsection{Vettorializzazione degli articoli}
 		Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare gli articoli di Wikipedia in vettori.
 		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome \emph{Word2Vec}. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato, le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
 
@@ -151,7 +152,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 		Dopo aver allenato il modello \emph{Word2Vec} sul nostro corpus di testi, trasformando così le singole parole in vettori, ad ogni articolo è stata associata la media vettoriale di tutte le parole presenti nel suo testo. Il \emph{Basic Linear Algebra Subprograms} di Spark ci ha permesso di eseguire questa operazione molto rapidamente.
 
-	\subsection{BAG OF WORDS} \label{sec:bag_of_words}
+	\subsection{Bag of words} \label{sec:bag_of_words}
 
 	L'algoritmo Bag of Words\cite{bagofwords} effettua la conversione degli articoli in vettori considerando le occorrenze dei termini in essi.
 	In particolare viene considerata come metrica la \textit{Term frequency-inverse document frequency} (Tf-Idf).
