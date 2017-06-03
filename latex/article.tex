@@ -30,6 +30,12 @@
 
 \input{structure.tex} % Include the structure.tex file which specified the document structure and layout
 \usepackage[cm]{fullpage}
+\usepackage[
+	bottom=0.5in, 
+	top=   0.5in, 
+	left=  0.5in, 
+	right= 0.5in
+]{geometry}
 %\renewcommand*\rmdefault{cmr}
 
 \hyphenation{Fortran hy-phen-ation} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
@@ -38,7 +44,7 @@
 %	TITLE AND AUTHOR(S)
 %----------------------------------------------------------------------------------------
 
-\title{\normalfont\spacedallcaps{clustering di wikipedia e relazione con le categorie}} % The article title
+\title{\normalfont\spacedallcaps{clustering di wikipedia e relazione con le categorie degli articoli}} % The article title
 
 \author{\spacedlowsmallcaps{Cazzaro Dalla Cia Lovisotto Vianello}}
 
@@ -114,7 +120,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			\label{fig:categories}
 		\end{figure}
 
-	L'analisi effettuata rivela infatti che, sul totale di 198609 distinte categorie presenti nel dataset, circa due terzi (precisamente 134524) di queste sono uniche, ovvero sono associate ad un solo articolo.
+	L'analisi effettuata rivela infatti che, sul totale di 198.609 distinte categorie presenti nel dataset, circa due terzi (precisamente 134.524) di queste sono uniche, ovvero sono associate ad un solo articolo.
 	Dato che queste non portano alcun contenuto informativo utile alla clusterizzazione, abbiamo provveduto ad escludere tali categorie dalle successive analisi.
 
 	Nondimeno è anche presente un numero ristretto di 158 categorie associate a 100 o più articoli, le quali sono composte per lo più da categorie del genere "1900 deaths" e "1900 births" che si ripetono variando solamente l'anno.
@@ -179,7 +185,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 				\Phi_{K-means} (C) = \sum_{i=1}^K \sum_{p \in C_i \cap P} d(p, c_i) \\
 			\end{equation}
 
-			Per il nostro progetto abbiamo utilizzato l'implementazione Java \emph{KMeans} di Spark \emph{mllib}, reperibile \href{https://spark.apache.org/docs/2.1.0/mllib-clustering.html#k-means}{online}.
+			Per il nostro progetto abbiamo utilizzato l'implementazione Java \emph{KMeans} di Spark \emph{mllib}.
 
 		\subsubsection{Latent Dirichlet Allocation}
 
@@ -276,6 +282,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Grazie a questo passaggio NMI può essere calcolata direttamente dalla sua definizione (equazione \ref{eq:NMI}).
 			\smallbreak
 			Il secondo approccio tenta invece di estendere NMI al caso di cluster che si sovrappongano l'uno all'altro, considerando quindi ogni classe $c$ con la sua complementare $\bar{c}$ una partizione dell'insieme dei punti.
+			
 			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma.
 			
 			\smallbreak
@@ -309,7 +316,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
 		Come si puo notare in figura \ref{fig:NMI-kmeans-categories}, l'andamento dell'informazione mutua del clustering rispetto alle categorie risulta analogo per entrambi gli approcci impiegati, descritti nella sezione \ref{sec:NMI}.
 
-		L'aumento di informazione al crescre di K ci suggerisce che aumentando il numero di cluster si ottiene un clustering più vicino alla suddivisione indotta dalle categorie, ma che il miglioramento è tanto meno apprezzabile quanto più si sale con il valore di K.
+		L'aumento di informazione al crescre di K ci suggerisce che aumentando il numero di cluster il clustering si avvicina alla suddivisione indotta dalle categorie, ma che questo approssimarsi è tanto meno apprezzabile quanto più si sale con il valore di K.
 
 		\begin{figure}[!htbp]
 			\hspace{-1cm}
