@@ -121,7 +121,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			\centering
 			\includegraphics[scale=.5]{Figures/categoriesCake.png}
 			\end{subfigure}
-		\hspace{0.5cm}
+		\hspace{0.6cm}
 			\begin{subfigure}{.5\textwidth}
 			\centering
 			\includegraphics[scale=.5]{Figures/categories.png}
@@ -138,7 +138,8 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 
 	\begin{table}[]
-	%\hspace*{-2cm}
+	\vspace*{0.2cm}
+	\hspace*{1cm}
 	\begin{tabular}{l|l||l|l}
 	Living people & 14994 & Association football midfielders & 611 \\
 	Year of birth missing (living people) & 1172 & Association football defenders & 502 \\
@@ -152,18 +153,16 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 
 \section{Rappresentazione del Dataset}
-	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words} presenti nel testo e lemmatizzando le parole rimaste.
+	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words}, per la cui lista ci siamo riferiti al sito \url{http://www.ranks.nl/stopwords}.
+	%ovvero parole come congiunzioni e preposizioni che portano un contenuto informativo sostanzialmente nullo al testo.
 
-	Per l'eliminazione delle \emph{stop words} ci siamo basati su una lista di parole fornita dal sito \url{http://www.ranks.nl/stopwords}.
-	Questi termini vengono filtrati dal corpus in quanto portano un contenuto informativo sull'argomento dell'articolo pressochè nullo.
-
-	La lemmatizzazione invece è stata eseguita utilizzando il $Lemmatizer$ di Spark al fine di raggruppare assieme le variazioni semantiche delle parole.
+	Questo passaggio è stato seguito dalla lemmatizzazione, al fine di raggruppare assieme forme flesse di una stessa parola: l'operazione è stata eseguita con il \emph{Lemmatizer} di Spark.
 
 	\subsection{Vettorializzazione degli articoli}
 		Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare gli articoli di Wikipedia in vettori.
 		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome \emph{Word2Vec}. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato, le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
 
-		Tale funzionalità è già implementata nella suite software di Spark, ma per sfruttarla al meglio è necessario settare alcuni parametri. Tra questi uno dei più importanti è la dimensione del vettore in uscita.
+		Tale funzionalità è già implementata nella suite software di Spark, ma per sfruttarla al meglio è necessario settare alcuni parametri: tra questi uno dei più importanti è la dimensione del vettore in uscita.
 		In letteratura si è valutato che una dimensionalità nel ordine dei 100/300\cite{w2vdim} risulta un buon compromesso tra prestazioni e capacità di descrivere il dataset.
 
 		Dopo aver allenato il modello \emph{Word2Vec} sul nostro corpus di testi, trasformando così le singole parole in vettori, ad ogni articolo è stata associata la media vettoriale di tutte le parole presenti nel suo testo. Il \emph{Basic Linear Algebra Subprograms} di Spark ci ha permesso di eseguire questa operazione molto rapidamente.
@@ -198,7 +197,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 					\item $u_i$, distanza di $y_i \in Y$ dal pi\`{u} vicino punto di $X$
 					\item $w_i$, distanza di $x_i \in X$ dal pi\`{u} vicino punto di $X$
 				\end{itemize}
-				La statistica di Hopkins \`{e} allora:
+				La statistica di Hopkins è allora definita come
 				
 				$$H=\frac{\sum_{i=1}^m{u_i^d}}{\sum_{i=1}^m{u_i^d}+\sum_{i=1}^m{w_i^d}}$$
 			\end{hopkins}
@@ -223,7 +222,8 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 			Latent Dirichlet Allocation (LDA)\cite{lda} è un modello generativo statistico che considera ogni documento come il risultato della sovrapposizione di più topic, individuati da un insieme di parole.
 
-			Analogamente a k-means può essere utilizzata come algoritmo di clustering unsupervised associando gli articoli al topic avente influenza più alta nel loro corpus: questo permette non solo di individuare gruppi di articoli, ma di associare ad essi un contesto semantico.
+			Analogamente a \emph{K-means} può essere utilizzata come algoritmo di clustering non supervisionato. 
+			Ciò si può ottenere associando ad ogni articolo al topic a lui più influente, che costituisce quindi il suo contesto semantico.
 
 			%TODO: Inserire tabella con un po' di topic significativi
 
@@ -246,7 +246,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 			Pertanto abbiamo provveduto a implementare e applicare una versione modificata che approssima questo l'algoritmo, denominata \emph{Simplified Silhouette}\cite{sscmapreduce}.
 
-			Indicando con $a$ la distanza tra il punto considerato e il centro del proprio cluster e con $b$ la minima distanza tra il punto e gli altri centri del cluster, il {Simplified Silhouette Coefficient} è così definito:
+			Indicando con $a$ la distanza tra il punto considerato e il centro del proprio cluster e con $b$ la minima distanza tra il punto e gli altri centri del cluster, il {Simplified Silhouette Coefficient} si calcola come
 
 			\begin{equation} \begin{aligned} \label{eq:simplifiedSilhouette}
 				SSC = \frac{b - a}{ max(a, b) } = \frac{b - a}{b}
@@ -275,7 +275,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 			Questo rende difficoltoso usare \emph{Silhouette} come strumento per individuare un $K$ ottimale, perché tende a provilegiare K elevati.
 			Tale problematica può essere affrontata introducendo un peso al coefficiente restituito da Silhouette in maniera da evitare questa convergenza a $1$.
-			Questa indagine esula tuttavia dagli scopi di questo lavoro non abbiamo trattato oltre questo punto che tuttavia può essere oggetto di studi futuri.
+			Questa indagine esula tuttavia dagli scopi di questo lavoro in cui non trattiamo oltre questo punto, ma che tuttavia può essere oggetto di studi futuri.
 
 		\subsubsection{Normalized Mutual Information} \label{sec:NMI}
 			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
@@ -285,7 +285,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Ogni clustering viene perciò individuato dall'insieme $\Omega$ di queste variabili aleatorie mutualmente esclusive e a somma unitaria.
 
 			Con questa descrizione del problema è possibile calcolare l'informazione mutua tra due distinti clustering $\Omega$ e $\Phi$.
-			Questa matrica è stata normalizzata in $(0, 1)$ per garantire un confronto alla pari tra clustering di dimensione diversa.
+			Questa metrica viene normalizzata in $(0, 1)$ per garantire un confronto alla pari tra clustering di dimensione diversa.
 			NMI viene quindi definita come
 
 			\begin{equation} \label{eq:NMI}
@@ -308,7 +308,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 			\smallbreak
 
-			Purtroppo questa definizione non è direttamente applicabile al confronto tra cluster e categorie perché, mentre i clustering ottenuti con K-means e LDA sono delle effettive partizioni del dataset, non si può dire lo stesso delle categorie, dato che un articolo può possederne più di una.
+			Purtroppo questa definizione non è direttamente applicabile al confronto tra cluster e categorie perché, mentre i clustering ottenuti con \emph{K-means} e \emph{LDA} sono delle effettive partizioni del dataset, non si può dire lo stesso delle categorie, dato che un articolo può possederne più di una.
 			\smallbreak
 			Il primo approccio per scogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} (vedi sezione \ref{sec:bag_of_words}) tra le categorie di ciascun articolo per eleggere la più rappresentativa.
 			Grazie a questo passaggio NMI può essere calcolata direttamente dalla sua definizione (equazione \ref{eq:NMI}).
@@ -323,7 +323,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 \section{Risultati}
 
 	\subsection{Numero di cluster}
-		Il clustering K-means risulta il più semplice e rapido da ottenere e per questo motivo abbiamo deciso di ispezionare un ampio range di valori per K, numero di cluster.
+		Il clustering \emph{K-means} risulta il più semplice e rapido da ottenere e per questo motivo abbiamo deciso di ispezionare un ampio range di valori per K.
 
 		La funzione obiettivo cala continuamente al variare del numero di cluster, come da figura \ref{fig:KMeansObj}, ma il calo diventa sempre più trascurabile al crescere di K.
 		Questa osservazione è confermata dall'andamento della derivata della funzione obiettivo: essa raggiunge un tasso di incremento sostanzialmente nullo in prossimità del valore K=100.
@@ -348,7 +348,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
 		Come si puo notare in figura \ref{fig:NMI-kmeans-categories}, l'andamento dell'informazione mutua del clustering rispetto alle categorie risulta analogo per entrambi gli approcci impiegati, descritti nella sezione \ref{sec:NMI}.
 
-		L'aumento di informazione al crescere di K ci suggerisce che aumentando il numero di cluster il clustering si avvicina alla suddivisione indotta dalle categorie, ma che questo approssimarsi è tanto meno apprezzabile quanto più si sale con il valore di K.
+		L'aumento di informazione al crescere di K ci suggerisce che aumentando il numero di partizioni il clustering si avvicina alla suddivisione indotta dalle categorie, ma che questo approssimarsi è tanto meno apprezzabile quanto più si sale con il valore di K.
 
 		\begin{figure}[!htbp]
 			\hspace{-1cm}
