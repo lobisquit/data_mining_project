@@ -172,9 +172,9 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 		\subsubsection{K-means}
 			Dato un insieme di punti $P \subset M$, dove $M$ è uno spazio metrico indotto da una funzione distanza $d$, l'algoritmo K-means punta a costruire una partizione $C = \{ C_1, ..., C_K \}$ con centri dei cluster $\{ c_1, ..., c_K\}$ che minimizzi la seguente funzione obiettivo.
 
-			\begin{equation} \begin{align}
-				\Phi_{K-means} (C) = \sum_{i=1}^K \sum_{p \in C_i \cap P} d(p, c_i)
-			\end{align} \end{equation}
+			\begin{equation}
+				\Phi_{K-means} (C) = \sum_{i=1}^K \sum_{p \in C_i \cap P} d(p, c_i) \\
+			\end{equation}
 
 			Per il nostro progetto abbiamo utilizzato l'implementazione Java \emph{KMeans} di Spark \emph{mllib}, reperibile nella \href{https://spark.apache.org/docs/2.1.0/mllib-clustering.html#k-means}{documentazione} online.
 
@@ -192,7 +192,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Rimozione dei cluster con un solo articolo dal punteggio
 			Magari buttiamoci un peso a sta metrica
 
-		\subsubsection{Normalized Mutual Information}
+		\subsubsection{Normalized Mutual Information} \label{sec:NMI}
 			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
 
 			Questa misura può essere impiegata per valutare quanto due partizioni, o \emph{clustering}, concordano nel suddividere un set di punti \cite{Manning}.
@@ -230,9 +230,8 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Il primo approccio per scogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} (vedi sezione \ref{sec:bag_of_words}) tra le categorie di ciascun articolo per eleggere la più rappresentativa.
 			Grazie a questo passaggio NMI può essere calcolata direttamente dalla sua definizione (equazione \ref{eq:NMI}).
 
-			% TODO specificare meglio la normalizzazione
 			Il secondo approccio tenta invece di estendere NMI al caso di cluster che si sovrappongano l'uno all'altro, considerando quindi ogni classe $c$ con la sua complementare $\bar{c}$ una partizione dell'insieme dei punti.
-			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma. A causa di questa passaggio si perde la normalizzazione tra 0 e 1, ma i risultati sono comunque confrontabili, perché scalati secondo un fattore caretteristico della distribuzione delle categorie.
+			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma.
 
 \section{Risultati}
 
@@ -246,27 +245,36 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			\hspace{-2cm}
 			\begin{subfigure}{.5\textwidth}
 				\centering
-				\includegraphics[scale=.5]{../results/KMeans.eps}
-				\caption{Funzione obiettivo}
+				\includegraphics[scale=.5]{../results/NMI-kmeans-categories.eps}
 			\end{subfigure}
 			\hspace{1.5cm}
 			\begin{subfigure}{.5\textwidth}
 				\centering
 				\includegraphics[scale=.5]{../results/KMeansDerivative.eps}
-				\caption{Derivata della funzione obiettivo}
 			\end{subfigure}
 			\caption{La funzione obiettivo smette di calare in modo significativo tra 50 e 150.}
 			\label{fig:KMeansObj}
 		\end{figure}
 
-	Per questo motivo nelle analisi successive ci siamo concentrati su valori di K compresi tra 50 e 150, che risultano trattabili anche con l'algoritmo LDA.
+	Per questo motivo nelle analisi successive ci siamo concentrati su valori di K compresi tra 50 e 150.
 
 	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
-		\begin{figure}[!htb]
-			\centering
-			%TODO: dava un errore..
-			\includegraphics[scale=.5]{../results/NMI-kmeans-categories.eps}
-			\caption{Informazione mutua tra K-means e il clustering indotto dalle categorie.}
+		Come si puo notare in figura \ref{fig:NMI-kmeans-categories}, l'andamento dell'informazione mutua del clustering rispetto alle categorie risulta analogo per entrambi gli approcci impiegati, descritti nella sezione \ref{sec:NMI}.
+		
+		L'aumento di informazione al crescre di K ci suggerisce che aumentando il numero di cluster si ottiene un clustering più vicino alla suddivisione indotta dalle categorie, ma che il miglioramento è tanto meno apprezzabile quanto più si sale con il valore di K.
+		
+		\begin{figure}[!htbp]
+			\hspace{-2cm}
+			\begin{subfigure}{.5\textwidth}
+				\centering
+				\includegraphics[scale=.5]{../results/NMI-kmeans-ranked-categories.eps}
+			\end{subfigure}
+			\hspace{1.5cm}
+			\begin{subfigure}{.5\textwidth}
+				\centering
+				\includegraphics[scale=.5]{../results/NMI-kmeans-overlapping-categories.eps}
+			\end{subfigure}
+			\caption{NMI tra K-means e il clustering indotto dalle categorie}
 			\label{fig:NMI-kmeans-categories}
 		\end{figure}
 
