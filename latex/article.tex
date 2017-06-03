@@ -237,8 +237,22 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 			Analogamente a \emph{K-means} può essere utilizzata come algoritmo di clustering non supervisionato. 
 			Ciò si può ottenere associando ad ogni articolo al topic a lui più influente, che costituisce quindi il suo contesto semantico.
-
-			%TODO: Inserire tabella con un po' di topic significativi
+			
+			Nella tabella \ref{table:ldatopics} sono elencati i 10 termini più rilevanti per alcuni dei topic risultati dall'applicazione di LDA con $k=80$.
+			
+			\begin{table}[!htbp]
+			\vspace*{0.2cm}
+			\hspace*{1cm}
+			\begin{tabular}{l|l}
+			Topic 1 & plant tree food forest bird fish animal flower grow natural\\
+			Topic 2 & film series episode star character movie actor direct role television\\
+			Topic 3 & building house build tower hall hotel wall room floor design\\
+			Topic 4 & church catholic bishop saint st. roman bell pope cathedral rome\\
+			Topic 5 & league season sign play manager baseball contract appearance professional pitch\\
+			\end{tabular}
+			\caption{Alcuni topic individuati da LDA con i termini associati pi\`{u} rilevanti}
+			\label{table:ldatopics}
+			\end{table}
 
 			Nel nostro lavoro abbiamo scelto di usare 100 iterazioni per l'algoritmo in quanto oltre tale numero i miglioramenti nella qualità del clustering non sono rilevanti\cite{ldaiterations}, mentre come funzione obiettivo abbiamo scelto la log-likelihood\cite{ldaevaluation}.
 
