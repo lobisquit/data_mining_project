@@ -14,9 +14,6 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.io.File;
 
-/**
- * @param to do
- */
 public class SimpleSilhouetteCoefficient {
     /**
      * @param args[0] number of clusters to start from
@@ -121,7 +118,7 @@ public class SimpleSilhouetteCoefficient {
             Long totalCount = simpleSilhoutteCoefficients.filter(n -> {
                 return n != 0.0;
             }).count();
-            // Double ssc = sumCoefficients / totalCount.doubleValue(); 
+            // Double ssc = sumCoefficients / totalCount.doubleValue();
 
             results.add(new Tuple2<>(listOfModels[i], ssc)); // i
 
