@@ -24,7 +24,7 @@ import java.io.*;
 * Normalized Mutual Information is a measure of how informative is clustering
 * against classes
 */
-public class NMIOverlappingCategories {
+public class NMIRankedCategories {
     public static void main(String[] args){
         // usual Spark setup
         SparkConf conf = new SparkConf(true).setAppName("Clustering");
@@ -45,8 +45,54 @@ public class NMIOverlappingCategories {
         // path of vector representation of wikipedia articles
         String wikiVectorPath = args[2];
 
+        // path to a csv with tuples (category, importance score)
+        String categoriesRankingPath = args[3];
+
         // load categories of each wikipedia article
         JavaRDD<WikiPage> pages = InputOutput.read(sc, datasetPath);
+
+        // retrieve categories ranking csv
+        JavaPairRDD<String, Double> categoriesRankingRDD =
+          // read file as JavaRDD of strings
+          sc.textFile(categoriesRankingPath)
+          .mapToPair((row) -> {
+            String[] chunks = row.split(",");
+
+            try {
+              // since there are commas in category names
+              // only last one is used as a separator
+              String category = chunks[0];
+              for (int i = 1; i < chunks.length - 1; i++) {
+                category += "," + chunks[i];
+              }
+              double ranking = Double.parseDouble(chunks[chunks.length - 1]);
+              return new Tuple2<>(category, ranking);
+            }
+            catch (Exception e) {
+              throw new Exception("Unable to parse line: " + row);
+            }
+          });
+
+        Map<String, Double> categoriesRanking = categoriesRankingRDD.collectAsMap();
+        sc.broadcast(categoriesRanking);
+
+        // create category RDD with the most important category among each article
+        JavaRDD<String> categoryRDD = pages
+          .map((page) -> Arrays.asList(page.getCategories()))
+          .map((categories) -> {
+            String bestCategory = "";
+            double bestScore = 0;
+
+            for (String cat : categories) {
+              double currentScore = categoriesRanking.get(cat);
+              if (currentScore > bestScore) {
+                bestCategory = cat;
+                bestScore = currentScore;
+              }
+            }
+            return bestCategory;
+          })
+          .cache();
 
         // load vector representation of each article
         JavaRDD<Tuple2<Long, Vector>> wikiVectorsDump = sc.objectFile(wikiVectorPath);
@@ -54,64 +100,22 @@ public class NMIOverlappingCategories {
           .map((row) -> row._2())
           .cache();
 
+        // number of documents is computed after category filtering
+        long numDocuments = categoryRDD.count();
+        assert numDocuments == wikiVectors.count();
+
         // obtain number of occurences of each category, i.e. P(c) in NMI formula
-        JavaPairRDD<String, Integer> categoryCountRDD = pages
-          // extract categories list from each page
-          .map((page) -> Arrays.asList(page.getCategories()))
-          // flatten all categories lists in a single RDD
-          .flatMap((categories) -> categories.iterator())
-          // count each occurrence of a category
+        JavaPairRDD<String, Integer> categoryCountRDD = categoryRDD
           .mapToPair((category) -> new Tuple2<>(category, 1))
           .reduceByKey((x, y) -> x + y)
-          // remove too unfrequent categories
-          .filter((point) -> point._2() > 10)
           .cache();
 
-        // retrieve a list of all categories in dataset
-        List<String> categoriesSet = categoryCountRDD
-          .map((row) -> row._1())
-          .collect();
-        sc.broadcast(categoriesSet);
-
-        // create map (category, count) and broadcast it to workers
         Map<String, Integer> categoryCount = categoryCountRDD.collectAsMap();
-        sc.broadcast(categoryCount);
 
-        // with the knowledge acquired, remove all non-relevant categories
-        // and the articles that remain without a category
-        JavaPairRDD<List<String>, Vector> categoriesVector = pages
-          // extract categories list from each page
-          .map((page) -> Arrays.asList(page.getCategories()))
-          // create dataset with tuples (categories, wiki vector)
-          .coalesce(1).zip(wikiVectors.coalesce(1))
-          // removed previously filtered categories
-          .mapToPair((row) -> {
-            List<String> cats = row._1();
-            Vector vector = row._2();
-
-            List<String> filteredCategories = new ArrayList();
-            for (String cat : cats) {
-              if (categoriesSet.contains(cat)) {
-                filteredCategories.add(cat);
-              }
-            }
-            return new Tuple2<>(filteredCategories, vector);
-          })
-          // keep only articles with more than 0 categories
-          .filter((row) -> !row._1().isEmpty())
-          .cache();
-
-        // split categoriesVectors RDD in its columnsm since after that
-        // they will be used separately
-        JavaRDD<List<String>> categories = categoriesVector
-          .map((row) -> row._1())
-          .cache();
-        JavaRDD<Vector> vectors = categoriesVector
-          .map((row) -> row._2())
-          .cache();
-
-        // number of documents is computed after category filtering
-        long numDocuments = categoriesVector.count();
+        double categoriesEntropy = categoryCountRDD
+          .map((row) -> row._2() / (double) numDocuments)
+          .map((probability) -> - probability * Math.log(probability) / Math.log(2))
+          .reduce((x, y) -> x + y);
 
         // retrieve model paths from proper directory
         File modelsFolder = new File("output/");
@@ -139,7 +143,7 @@ public class NMIOverlappingCategories {
           switch (clusteringTecnique) {
               case "KMeans":
                 KMeansModel Kmodel = KMeansModel.load(sc.sc(), modelPath);
-                clusterIDs = Kmodel.predict(vectors);
+                clusterIDs = Kmodel.predict(wikiVectors);
                 break;
 
               default:
@@ -166,46 +170,29 @@ public class NMIOverlappingCategories {
             })
             .reduce((x, y) -> x + y);
 
-          if (Double.isNaN(clusteringEntropy)) {
-            System.out.println("clusteringEntropy=" + clusteringEntropy);
-            System.exit(1);
-          }
           // create a RDD with (categories, clusterID)
-          JavaPairRDD<List<String>, Integer> categoriesID = categories.coalesce(1)
+          JavaPairRDD<String, Integer> categoryID = categoryRDD.coalesce(1)
             .zip(clusterIDs.coalesce(1))
             .cache();
 
-          // create a RDD with (clusterID, single category)
-          JavaPairRDD<Integer, String> categoryID = categoriesID
-            .flatMap((point) -> {
-                // create a collections of all tuples (clusterID, category)
-                List<Tuple2<Integer, String>> points = new ArrayList();
-                for (String category : point._1()) {
-                    points.add(new Tuple2<>(point._2(), category));
-                }
-                return points.iterator();
-            })
-            // needed to create a JavaPairRDD
-            .mapToPair((row) -> row);
-
           // count couples (category, clusterID), i.e. P(w or C) probabilities
-          JavaPairRDD<Tuple2<Integer, String>, Integer> categoryClusterCount =
+          JavaPairRDD<Tuple2<String, Integer>, Integer> categoryClusterCount =
             categoryID
             // map tuples to key, value tuple ( (clusterID, category) , 1)
             .mapToPair((row) -> {
-              String category = row._2();
-              int clusterID = row._1();
-              return new Tuple2<>(new Tuple2<>(clusterID, category), 1);
+              String category = row._1();
+              int clusterID = row._2();
+              return new Tuple2<>(new Tuple2<>(category, clusterID), 1);
             })
             // sum every element by key, to obtain counts of couples (clusterID, category)
             .reduceByKey((x, y) -> x + y);
 
           double modelScore = categoryClusterCount
             // compute term in NMI that involves a single category
-            .mapToPair((row) -> {
+            .map((row) -> {
               // extract tuple elements
-              int clusterID = row._1()._1();
-              String cat = row._1()._2();
+              int clusterID = row._1()._2();
+              String cat = row._1()._1();
               double Pwc = row._2() / (double) numDocuments;
 
               // retrieve precomputed probabilities
@@ -230,34 +217,12 @@ public class NMIOverlappingCategories {
                   ) / Math.log(2);
               }
 
-              return new Tuple2<>(cat, clusterCategoryScore);
+              return clusterCategoryScore;
             })
-            .filter((row) -> row._2() != 0.0)
-            // sum over all clusters, to obtain each category score
-            // (i.e. NMI numerator for each category)
-            .reduceByKey((x, y) -> x + y)
-            // normalize each category term
-            .map((row) -> {
-              String cat = row._1();
-              double clusterCategoryScore = row._2();
-
-              double categoryFraction = categoryCount.get(cat) / (double) numDocuments;
-              double categoryEntropy;
-              // handle corner case in which 0 log(0) would lead to NaN instead of 0
-              if (categoryFraction == 0) {
-                categoryEntropy = 0;
-              }
-              else {
-                categoryEntropy = - categoryFraction * Math.log(categoryFraction) / Math.log(2);
-              }
-
-              // normalize to total entropy (clustering + current class)
-              return 2 * clusterCategoryScore /
-                (clusteringEntropy + categoryEntropy);
-            })
-
-            // sum across all categories
-            .reduce((x, y) -> x + y);
+            // sum across all (category, cluster) couples
+            .reduce((x, y) -> x + y)
+            // normalize to total entropy (clustering + classes)
+            * 2 / (clusteringEntropy + categoriesEntropy);
 
           // System.out.println(categoriesClusterFractions
           //   .filter((point) -> point._2() > 1/numDocuments)
@@ -267,14 +232,14 @@ public class NMIOverlappingCategories {
         }
       // output results to csv file
       try {
-        FileWriter writer = new FileWriter("output/modelNMIscoresOverlapping.csv");
+        FileWriter writer = new FileWriter("output/modelNMIscores.csv");
         for(String line : results) {
           writer.write(line + "\n");
         }
         writer.close();
       }
       catch (IOException e) {
-        System.err.println("Unable to write on file output/modelNMIscoresOverlapping.csv");
+        System.err.println("Unable to write on file output/modelNMIscores.csv");
       }
     }
 }
