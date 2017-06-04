@@ -36,11 +36,12 @@ public class EvaluationLDA {
             modelPath = modelPath + "/";
         }
 
-        // usual Spark setup
+        // Usual Spark setup
         SparkConf conf = new SparkConf(true).setAppName("Clustering");
         JavaSparkContext sc = new JavaSparkContext(conf);
         sc.setLogLevel("ERROR");
 
+        // Read the map (id, word)
         String[] lemmas = new String[3000];
         try {
             BufferedReader br = new BufferedReader(new FileReader(vocabPath));
@@ -58,6 +59,7 @@ public class EvaluationLDA {
 
         System.out.println("##############################################################");
 
+        // Load the LDA model
         DistributedLDAModel model = DistributedLDAModel.load(sc.sc(), modelPath);
 
         double k = model.k(); // number of topics
@@ -71,7 +73,6 @@ public class EvaluationLDA {
 
         // Print some topics together with their most characterizing lemmas
         Tuple2<int[], double[]>[] describeTopics = model.describeTopics(10);
-
         try{
             PrintWriter writer = new PrintWriter("./output/LDA-topicsdescription-k"+k+"-vocab3000.txt", "UTF-8");
             for (int i = 0; i < k; i++) {
@@ -88,6 +89,7 @@ public class EvaluationLDA {
             e.printStackTrace();
         }
 
+        // Produce a file containing for every document the assigned topic id
         JavaRDD<Tuple3<Long, int[], int[]>> topicAssignments = model.javaTopicAssignments();
         List<Tuple3<Long, int[], int[]>> collection = topicAssignments.collect();
         try{
@@ -102,6 +104,8 @@ public class EvaluationLDA {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // Produce a file containing the loglikelihood
         try{
             PrintWriter writer = new PrintWriter("./output/LDA-loglikelihood-k"+k+"-vocab3000.csv", "UTF-8");
             writer.println(""+logLikelihood);

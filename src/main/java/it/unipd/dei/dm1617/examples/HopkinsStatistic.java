@@ -60,8 +60,8 @@ public class HopkinsStatistic {
             allWikiVector = allWikiVector.union(app);
         }
 
+        // Needed RDD
         JavaRDD<Vector> onlyVectors = allWikiVector.map(elem -> elem._2());
-
         JavaRDD<Vector> dataSample = onlyVectors.sample(false, sampleFrac);
         JavaRDD<Vector> negativeDataSample = onlyVectors.subtract(dataSample);
 
@@ -70,7 +70,7 @@ public class HopkinsStatistic {
 
         System.out.println("Computing vectors domain..");
 
-        // compute the max and min values for every vectors component
+        // Compute the max and min values for every vectors component
         Vector maxValues = onlyVectors.reduce((prev, n) -> {
             double[] pa = prev.toArray();
             double[] na = n.toArray();
@@ -92,7 +92,7 @@ public class HopkinsStatistic {
 
         System.out.println("Generating random vectors..");
 
-        // generate a random set of vectors
+        // Generate a random set of vectors
         long sampleNumber = dataSample.count();
         ArrayList<Vector> randList = new ArrayList<>();
         for (int i = 0; i < sampleNumber; i++) {
@@ -106,10 +106,10 @@ public class HopkinsStatistic {
 
         System.out.println("Computing distances..");
 
-        // find the nearest sampled point for every vector
+        // Find the nearest sampled point for every vector (data subset and random sample)
 
         List<Vector> listNegativeDataSample = negativeDataSample.collect();
-        // kmeans model used with defined centers
+        // Kmeans model used with defined centers in order to compute distances
         KMeansModel dataCentersModel = new KMeansModel(listNegativeDataSample);
         JavaRDD<Double> dataDistances = dataSample.map((vector)->{
             Vector nearestPoint = listNegativeDataSample.get(dataCentersModel.predict(vector));
@@ -117,7 +117,7 @@ public class HopkinsStatistic {
         });
 
         List<Vector> listComplete = onlyVectors.collect();
-        // kmeans model used with defined centers
+        // kmeans model used with defined centers in order to compute distances
         KMeansModel randCentersModel = new KMeansModel(listComplete);
         JavaRDD<Double> randDistances = randSample.map((vector)->{
             Vector nearestPoint = listComplete.get(randCentersModel.predict(vector));
@@ -127,9 +127,7 @@ public class HopkinsStatistic {
         System.out.println("Computing Hopkins statistics..");
 
         double dataDistSum = dataDistances.reduce((accum, n) -> (accum + n));
-        System.out.println("1/2 reduce done.");
         double randDistSum = randDistances.reduce((accum, n) -> (accum + n));
-        System.out.println("2/2 reduce done.");
         double hopkins = dataDistSum / (dataDistSum+randDistSum);
         System.out.println("dataDistSum = "+dataDistSum+", randDistSum = "+randDistSum);
         System.out.println("Hopkins statistic: "+hopkins);
