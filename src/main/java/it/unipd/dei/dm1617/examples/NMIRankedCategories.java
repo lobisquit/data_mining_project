@@ -146,20 +146,8 @@ public class NMIRankedCategories {
                 clusterIDs = Kmodel.predict(wikiVectors);
                 break;
 
-              case "LDA":
-                // LDA is not able to load models, nor to predict the cluster of a new document
-                // so I will read (wikiPageID, clusterID) results CSV
-                clusterIDs =
-                  sc.textFile(modelPath)
-                  .map((row) -> {
-                    String[] chunks = row.split(",");
-                    try {
-                      return Integer.parseInt(chunks[chunks.length - 1]);
-                    }
-                    catch (Exception e) {
-                      throw new Exception("Unable to parse line: " + row);
-                    }
-                  });
+              default:
+                System.out.println("Others methods are not supported");
                 break;
           }
 
