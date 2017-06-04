@@ -106,7 +106,7 @@ Con queste premesse ci siamo chiesti
 Tratteremo delle metodologie e dei risultati ottenuti nel seguito della trattazione, così strutturata.
 
 La sezione \ref{sec:dataset} illustra l'analisi preliminare effettuata sugli articoli e sulle categorie.
-Successivamente il capitolo \ref{sec:rappresentazione} descrive le tecniche utilizzate per rappresentare il dataset.
+Il capitolo \ref{sec:rappresentazione} descrive le tecniche utilizzate per rappresentare il dataset.
 Il capitolo \ref{sec:clustering} tratta poi degli algoritmi di clustering applicati al dataset e delle tecniche di valutazione impiegate.
 Di seguito la sezione \ref{sec:results} riporta e discute i risultati ottenuti nel capitolo precedente.
 Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbiamo ottenuto e propone alcuni spunti di ricerca per futuri sviluppi.
@@ -168,7 +168,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 	\subsection{Vettorializzazione degli articoli}
 		Per interagire con i più comuni algoritmi di clustering, ad esempio \emph{K-means}, si è reso necessario trasformare gli articoli di Wikipedia in vettori.
-		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome \emph{Word2Vec}. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato, le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
+		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome \emph{Word2Vec}. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
 
 		Tale funzionalità è già implementata nella suite software di Spark, ma per sfruttarla al meglio è necessario settare alcuni parametri: tra questi uno dei più importanti è la dimensione del vettore in uscita.
 		In letteratura si è valutato che una dimensionalità nel ordine dei 100/300\cite{w2vdim} risulta un buon compromesso tra prestazioni e capacità di descrivere il dataset.
@@ -264,7 +264,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 			Tale approccio però richiede tempo $\mathcal{O}(n^2)$, dove $n$ è la taglia dell'input, e il calcolo diretto risulta impraticabile a causa della taglia del dataset e le risorse di calcolo a nostra disposizione.
 
-			Pertanto abbiamo provveduto a implementare e applicare una versione modificata che approssima questo l'algoritmo, denominata \emph{Simplified Silhouette}\cite{sscmapreduce}.
+			Pertanto abbiamo provveduto a implementare e applicare una versione modificata che approssima questo algoritmo, denominata \emph{Simplified Silhouette}\cite{sscmapreduce}.
 
 			Indicando con $a$ la distanza tra il punto considerato e il centro del proprio cluster e con $b$ la minima distanza tra il punto e gli altri centri del cluster, il {Simplified Silhouette Coefficient} si calcola come
 
@@ -286,14 +286,14 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 			\smallbreak
 			Un'ulteriore osservazione è il fatto che, con l'aumentare di $K$, il punteggio calcolato sia con \emph{Silhouette} che con \emph{Simplified Silhouette} tende a $1$ (il miglior punteggio possibile) e raggiunge effettivamente tale valore con $K = n$.
-			In questo caso estremo ogni punto costituisce un cluster a sè stante e perciò $a$ si annulla portando a 1 il valore di $SSC$.
+			In questo caso estremo ogni punto costituisce un cluster a sè stante e perciò $a$ si annulla portando a $1$ il valore di $SSC$.
 
-			Indicando con $d$ la distanza media tra il punto e il suo cluster e con $min(d)$ la minima distanza media tra il punto e gli altri cluster, si ha infatti che
+			Indicando con $d$ la distanza media tra il punto e il suo cluster e con $min(c)$ la minima distanza media tra il punto e gli altri cluster, si ha infatti che
 
 			\begin{equation} \label{eq:silhouetteToOne}
-				Silhouette = \frac{min(d) - d}{ max(d, \,min(d)) } \quad \xrightarrow [K \to n] \quad ~~ 1 \end{equation}
+				Silhouette = \frac{min(c) - d}{ max(d, \,min(c)) } \quad \xrightarrow [K \to n] \quad ~~ 1 \end{equation}
 
-			Questo rende difficoltoso usare \emph{Silhouette} come strumento per individuare un $K$ ottimale, perché tende a provilegiare K elevati.
+			Questo rende difficoltoso usare \emph{Silhouette} come strumento per individuare un $K$ ottimale, perché tende a privilegiare K elevati.
 			Tale problematica può essere affrontata introducendo un peso al coefficiente restituito da Silhouette in maniera da evitare questa convergenza a $1$.
 			Questa indagine esula tuttavia dagli scopi di questo lavoro in cui non trattiamo oltre questo punto, ma che tuttavia può essere oggetto di studi futuri.
 
@@ -301,7 +301,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
 			Essa può essere impiegata per valutare quanto due partizioni, o \emph{clustering}, concordano nel suddividere un set di punti \cite{Manning}.
 
-			Per fare questo, ad ogni cluster è stata associata una variabile indicatrice $\omega$, che assume valore 1 se il punto considerato appartiene al cluster e 0 altrimenti.
+			Per fare questo, ad ogni cluster è stata associata una variabile indicatrice $\omega$, che assume valore $1$ se il punto considerato appartiene al cluster e $0$ altrimenti.
 			Ogni clustering viene perciò individuato dall'insieme $\Omega$ di queste variabili aleatorie mutualmente esclusive e a somma unitaria.
 
 			Con questa descrizione del problema è possibile calcolare l'informazione mutua tra due distinti clustering $\Omega$ e $\Phi$.
@@ -325,7 +325,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 			Purtroppo questa definizione non è direttamente applicabile al confronto tra cluster e categorie perché, mentre i clustering ottenuti con \emph{K-means} e \emph{LDA} sono delle effettive partizioni del dataset, non si può dire lo stesso delle categorie, dato che un articolo può possederne più di una.
 			\smallbreak
-			Il primo approccio per scogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} (vedi sezione \ref{sec:bag_of_words}) tra le categorie di ciascun articolo per eleggere la più rappresentativa.
+			Il primo approccio per sciogliere questo nodo è stato quello di eseguire un \emph{ranking} con \emph{Inverse Document Frequency} (vedi sezione \ref{sec:bag_of_words}) tra le categorie di ciascun articolo per eleggere la più rappresentativa.
 			Grazie a questo passaggio NMI può essere calcolata direttamente dalla sua definizione (equazione \ref{eq:NMI}).
 			\smallbreak
 			Il secondo approccio tenta invece di estendere NMI al caso di cluster che si sovrappongano l'uno all'altro, considerando quindi ogni classe $c$ con la sua complementare $\bar{c}$ una partizione dell'insieme dei punti.
@@ -360,7 +360,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 	Per questo motivo nelle analisi successive ci siamo concentrati su valori di K compresi tra 50 e 150.
 
-	\subsection{Confronto tra i cluster e categorie con Normalized Mutual Information} \label{sec:NMI-confronto}
+	\subsection{Confronto tra cluster e categorie con Normalized Mutual Information} \label{sec:NMI-confronto}
 		Come si puo notare in figura \ref{fig:NMI-kmeans-categories}, l'andamento dell'informazione mutua del clustering rispetto alle categorie risulta analogo per entrambi gli approcci impiegati, descritti nella sezione \ref{sec:NMI}.
 
 		L'aumento di informazione al crescere di K ci suggerisce che aumentando il numero di partizioni il clustering si avvicina alla suddivisione indotta dalle categorie, ma che questo approssimarsi è tanto meno apprezzabile quanto più si sale con il valore di K.
