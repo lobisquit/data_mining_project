@@ -183,7 +183,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 	$$ w_{i,j}=tf_{i,j}\times\log \left(\frac{N}{df_{i}} \right) $$
 	dove $tf_{i,j}$ rappresenta il numero di occorrenze di $i$ in $j$, $df_{i}$ è il numero di documenti contenenti il termine $i$, ed $N$ è il numero totale di documenti.
 
-	Abbiamo scelto di limitare l'analisi alle 3000 parole pi\`{u} frequenti nel dataset (escludendo le stopwords).
+	Abbiamo scelto di limitare l'analisi alle 3000 parole più frequenti nel dataset (escludendo le stopwords).
 
 	Pertanto il modello prodotto associa ad ogni documento un vettore di dimensione 3000, contenente gli indici TfIdf associati ad ogni articolo per tutte le parole selezionate.
 
@@ -201,8 +201,8 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 				Sia poi $Y$ un insieme generato di $m$ punti uniformemente distribuiti.
 				Si definiscono quindi le distanze:
 				\begin{itemize}
-					\item $u_i$, distanza di $y_i \in Y$ dal pi\`{u} vicino punto di $X$
-					\item $w_i$, distanza di $x_i \in X$ dal pi\`{u} vicino punto di $X$
+					\item $u_i$, distanza di $y_i \in Y$ dal più vicino punto di $X$
+					\item $w_i$, distanza di $x_i \in X$ dal più vicino punto di $X$
 				\end{itemize}
 				La statistica di Hopkins è allora definita come
 				
@@ -244,7 +244,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 			Topic 4 & church catholic bishop saint st. roman bell pope cathedral rome\\
 			Topic 5 & league season sign play manager baseball contract appearance professional pitch\\
 			\end{tabular}
-			\caption{Alcuni topic individuati da LDA con i termini associati pi\`{u} rilevanti}
+			\caption{Alcuni topic individuati da LDA con i termini associati più rilevanti}
 			\label{table:ldatopics}
 			\end{table}
 
@@ -407,7 +407,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 	
 	La statistica di Hopkins ci ha suggerito che c'è una forte tendenza al cluster degli articoli: ciò è dimostrato dagli ottimi risultati ottenuti da \emph{K-means}, che propendono per un valore di $K$ prossimo a 100.
 	
-	Come messo in luce nel capitolo \ref{sec:dataset} e nella sezione \ref{sec:NMI-confronto}, le categorie risultano molto sparse e portano a considerare valori di $K$ maggiori di 100. La relazione tra cluster e categorie è perciò labile, ma pensiamo che essa possa essere resa più stretta con una più aggressiva selezione delle categorie, consideri solo quelle semanticamente rilevanti.	
+	Come messo in luce nel capitolo \ref{sec:dataset} e nella sezione \ref{sec:NMI-confronto}, le categorie risultano molto sparse e portano a considerare valori di $K$ maggiori di 100. La relazione tra cluster e categorie è perciò labile, ma pensiamo che essa possa essere resa più stretta con una più aggressiva selezione delle categorie che consideri solo quelle semanticamente rilevanti.	
 		
 	
 %------------------------------------------------------------------------------
