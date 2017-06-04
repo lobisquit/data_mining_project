@@ -100,7 +100,7 @@ public class Doc2Vec{
                         }
 
                         Vector q;
-                        Vector w = Vectors.zeros(100); //todo rimuovo il valore hardcoded 100
+                        Vector w = Vectors.zeros(100);
                         for (String word : doc) {
                             try {
                                 q = w2vM.transform(word);
