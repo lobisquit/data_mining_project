@@ -113,8 +113,8 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 \section{Dataset e Analisi Preliminare} \label{sec:dataset}
 	Tra i due dataset proposti abbiamo utilizzato \url{medium-sample.dat.bz2}. Esso è un \emph{dump} composto da un JSON contenente centomila articoli di Wikipedia.
-	
-	Per ognuno di questi articoli abbiamo a disposizione il titolo, il testo, un id e le categorie associate all'articolo. 
+
+	Per ognuno di questi articoli abbiamo a disposizione il titolo, il testo, un id e le categorie associate all'articolo.
 	Queste ultime sono a discrezione degli autori e revisori, in quanto Wikipedia non prevede una struttura o dei vincoli particolari per l'assegnazione di queste categorie.
 
 	La nostra analisi mira a valutare la relazione semantica tra gli articoli e le loro categorie, quindi prima di effettuare l'analisi si è deciso di eliminare tutti le voci che non sono associate a nessuna categoria. Queste pagine sono dette \emph{di disambiguazione} e quindi non sono utili per i nostri scopi.
@@ -161,7 +161,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 \section{Rappresentazione del Dataset} \label{sec:rappresentazione}
 	Prima di procedere con il clustering sul contenuto degli articoli si è deciso di preprocessare il loro testo eliminando le cosiddette \emph{stop words}, per la cui lista ci siamo riferiti al sito \url{http://www.ranks.nl/stopwords}.
-	
+
 	%ovvero parole come congiunzioni e preposizioni che portano un contenuto informativo sostanzialmente nullo al testo.
 
 	Questo passaggio è stato seguito dalla lemmatizzazione, al fine di raggruppare assieme forme flesse di una stessa parola: l'operazione è stata eseguita con il \emph{Lemmatizer} di Spark.
@@ -193,7 +193,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 		\subsubsection{Hopkins Statistic}
 			Dopo aver effettuato la vettorializzazione dei documenti, si è cercato di stimare l'effettiva tendenza al clustering dei dati in nostro possesso utilizzando la statistica di Hopkins\cite{hopkins}.
-			
+
 			\vspace{5mm}
 			\hfill\begin{minipage}{\dimexpr\textwidth-1cm}
 			\begin{hopkins}
@@ -205,13 +205,13 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 					\item $w_i$, distanza di $x_i \in X$ dal più vicino punto di $X$
 				\end{itemize}
 				La statistica di Hopkins è allora definita come
-				
+
 				$$H=\frac{\sum_{i=1}^m{u_i^d}}{\sum_{i=1}^m{u_i^d}+\sum_{i=1}^m{w_i^d}}$$
 			\end{hopkins}
 			\xdef\tpd{\the\prevdepth}
 			\end{minipage}
 			\vspace{5mm}
-			
+
 			Il dataset randomizzato necessario per la comparazione è stato generato basandosi sul dominio delle componenti dei vettori restituiti dalla vettorializzazione degli articoli mediante algoritmo \emph{Word2Vec}.
 
 			Sono state eseguite svariate misurazioni di tale metrica utilizzando come sample una frazione da $0.1$ a $0.4$ dell'intero dataset e la statistica di Hopkins rilevata è stata compresa tra $0.011$ e $0.012$, valori che testimoniano una forte tendenza al clustering dei dati in nostro possesso.
@@ -229,11 +229,11 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 			Latent Dirichlet Allocation (LDA)\cite{lda} è un modello generativo statistico che considera ogni documento come il risultato della sovrapposizione di più topic, individuati da un insieme di parole.
 
-			Analogamente a \emph{K-means} può essere utilizzata come algoritmo di clustering non supervisionato. 
+			Analogamente a \emph{K-means} può essere utilizzata come algoritmo di clustering non supervisionato.
 			Ciò si può ottenere associando ogni articolo al topic ad esso più influente, che costituisce quindi il suo contesto semantico.
-			
+
 			Nella tabella \ref{table:ldatopics} sono elencati i 10 termini più rilevanti per alcuni dei topic individuati da LDA con $k=80$.
-			
+
 			\begin{table}[!htbp]
 			\vspace*{0.2cm}
 			\hspace*{1cm}
@@ -295,7 +295,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 			Questo rende difficoltoso usare \emph{Silhouette} come strumento per individuare un $K$ ottimale, perché tende a privilegiare K elevati.
 			Tale problematica può essere affrontata introducendo un peso al coefficiente restituito da Silhouette in maniera da evitare questa convergenza a $1$.
-			Questa indagine esula tuttavia dagli scopi di questo lavoro in cui non trattiamo oltre questo punto, pu\`{o} tuttavia essere oggetto di studi futuri.
+			Questa indagine esula tuttavia dagli scopi di questo lavoro in cui non trattiamo oltre questo punto, può tuttavia essere oggetto di studi futuri.
 
 		\subsubsection{Normalized Mutual Information} \label{sec:NMI}
 			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
@@ -384,9 +384,9 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 		Nel grafico \ref{fig:silhouetteValidation} sono riportati i valori per Simplified Silhouette, calcolati sui cluster generati da K-means al variare del numero di cluster.
 		Si può notare come lo score, dopo un assestamento iniziale per cluster molto piccoli aumenti in maniera lineare arrivando ad uno score che si avvicina a $1$.
 		Come riportato in precedenza tuttavia questo è dovuto più alla formulazione di Silhouette, che tende a $1$ per valore di $k$ vicino ad $n$, piuttosto che per un vero miglioramento del clustering.
-        
+
 		Si può comunque apprezzare una certa diminuzione della variazione della derivata per valori intorno a $k = 100$, pur rimanendo il fatto che in questo caso questa tecnica non porta da sola a risultati definitivi.
-    
+
 		\begin{figure}[!htb]
 			\hspace{-1cm}
 				\begin{subfigure}{.5\textwidth}
@@ -404,12 +404,12 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 \section{Conclusioni} \label{sec:conclusion}
 	La nostra analisi ha mostrato come sia possibile ottenere buoni risultati e ridotti tempi di calcolo con la tecnica di vettorializzazione degli articoli \emph{Word2Vec}, rispetto alle risorse richieste da algoritmi che operino su \emph{bag-of-words}.
-	
+
 	La statistica di Hopkins ci ha suggerito che c'è una forte tendenza al cluster degli articoli: ciò è dimostrato dagli ottimi risultati ottenuti da \emph{K-means}, che propendono per un valore di $K$ prossimo a 100.
-	
-	Come messo in luce nel capitolo \ref{sec:dataset} e nella sezione \ref{sec:NMI-confronto}, le categorie risultano molto sparse e portano a considerare valori di $K$ maggiori di 100. La relazione tra cluster e categorie è perciò labile, ma pensiamo che essa possa essere resa più stretta con una più aggressiva selezione delle categorie che consideri solo quelle semanticamente rilevanti.	
-		
-	
+
+	Come messo in luce nel capitolo \ref{sec:dataset} e nella sezione \ref{sec:NMI-confronto}, le categorie risultano molto sparse e portano a considerare valori di $K$ maggiori di 100. La relazione tra cluster e categorie è perciò labile, ma pensiamo che essa possa essere resa più stretta con una più aggressiva selezione delle categorie che consideri solo quelle semanticamente rilevanti.
+
+
 %------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
 %------------------------------------------------------------------------------
