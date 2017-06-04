@@ -230,7 +230,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 			Latent Dirichlet Allocation (LDA)\cite{lda} è un modello generativo statistico che considera ogni documento come il risultato della sovrapposizione di più topic, individuati da un insieme di parole.
 
 			Analogamente a \emph{K-means} può essere utilizzata come algoritmo di clustering non supervisionato. 
-			Ciò si può ottenere associando ad ogni articolo al topic a lui più influente, che costituisce quindi il suo contesto semantico.
+			Ciò si può ottenere associando ogni articolo al topic ad esso più influente, che costituisce quindi il suo contesto semantico.
 			
 			Nella tabella \ref{table:ldatopics} sono elencati i 10 termini più rilevanti per alcuni dei topic individuati da LDA con $k=80$.
 			
@@ -248,7 +248,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 			\label{table:ldatopics}
 			\end{table}
 
-			Nel nostro lavoro abbiamo scelto di usare 100 iterazioni per l'algoritmo in quanto oltre tale numero i miglioramenti nella qualità del clustering non sono rilevanti\cite{ldaiterations}, mentre come funzione obiettivo abbiamo scelto la log-likelihood\cite{ldaevaluation}.
+			Nel nostro lavoro abbiamo scelto di usare 100 iterazioni per l'algoritmo in quanto oltre tale numero i miglioramenti nella qualità del clustering non sono in genere rilevanti\cite{ldaiterations}, mentre come funzione obiettivo abbiamo scelto la log-likelihood\cite{ldaevaluation}.
 
 			La complessità computazionale di questo metodo non ci ha permesso però di confrontare i risultati con i clustering ottenuti con \emph{K-means}.
 
@@ -259,7 +259,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 	\subsection{Valutazioni del Clustering}
 
 		\subsubsection{Simplified Silhouette}
-			\emph{Silhouette} è un metodo unsupervised per interpretare e validare un dato cluster.
+			\emph{Silhouette} è un metodo unsupervised per interpretare e validare un dato clustering.
 			In particolare questa tecnica calcola per ogni punto la distanza media dal proprio cluster e la minima distanza media dagli altri cluster, valutando così sia la coesione che la separazione dei cluster, e restituisce un valore compreso tra $-1$ e $1$.
 
 			Tale approccio però richiede tempo $\mathcal{O}(n^2)$, dove $n$ è la taglia dell'input, e il calcolo diretto risulta impraticabile a causa della taglia del dataset e le risorse di calcolo a nostra disposizione.
@@ -280,7 +280,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 			Questa approssimazione permette quindi di ottenere una buona stima di \emph{Silhouette}\cite{ssc} riducendo la complessità dell'algoritmo a $\mathcal{O}(Kn)$, dove $K$ è il numero di cluster e $n$ il numero di punti in input.
 
 			Tale fattore di miglioramento delle prestazioni si indebolisce però all'aumentare di $K$, ritornando per $K \to n$ a una complessità quadratica.
-			Nel caso generale tuttavia si cerca un numero di cluster minore di $n$ e \emph{Simplified Silhouette} porta ad un apprezzabile miglioramento di performance.
+			Nel caso generale tuttavia si cerca un numero di cluster minore di $n$ e \emph{Simplified Silhouette} porta un apprezzabile miglioramento alle performances.
 
 			Considerando la media dei coefficienti $SSC$ sui vari punti del dataset si ottiene infine un'indicazione globale sulla bontà del clustering.
 
@@ -295,7 +295,7 @@ Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbia
 
 			Questo rende difficoltoso usare \emph{Silhouette} come strumento per individuare un $K$ ottimale, perché tende a privilegiare K elevati.
 			Tale problematica può essere affrontata introducendo un peso al coefficiente restituito da Silhouette in maniera da evitare questa convergenza a $1$.
-			Questa indagine esula tuttavia dagli scopi di questo lavoro in cui non trattiamo oltre questo punto, ma che tuttavia può essere oggetto di studi futuri.
+			Questa indagine esula tuttavia dagli scopi di questo lavoro in cui non trattiamo oltre questo punto, pu\`{o} tuttavia essere oggetto di studi futuri.
 
 		\subsubsection{Normalized Mutual Information} \label{sec:NMI}
 			L'informazione mutua è una quantità che misura la mutua dipendenza di due variabili aleatorie, ovvero quanta informazione porta sull'altra la conoscenza del valore di una delle due.
