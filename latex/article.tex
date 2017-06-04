@@ -50,16 +50,16 @@
 
 %\author{\spacedlowsmallcaps{Cazzaro Dalla Cia  Lovisotto Vianello}}
 \author{
-  Cazzaro, Davide\\
+  Cazzaro Davide\\
   \texttt{1138635}
   \and
-  Dalla Cia, Massimo\\
+  Dalla Cia Massimo\\
   \texttt{1153092}
   \and
-  Lovisotto, Enrico\\
+  Lovisotto Enrico\\
   \texttt{1156704}
   \and
-  Vianello, Enrico\\
+  Vianello Enrico\\
   \texttt{1153101}
 }
 
@@ -92,42 +92,37 @@
 %----------------------------------------------------------------------------------------
 
 \section{Introduzione}
-
 Per il progetto del corso di Data Mining abbiamo deciso di svolgere la traccia proposta B, che proponeva di indagare fino a che punto un clustering sulle pagine di Wikipedia è consistente con le categorie associate alle pagine stesse.
-Per fare ciò avevamo a disposizione due dataset, di differenti grandezze, formati da articoli di Wikipedia in lingua inglese.
+Per fare ciò avevamo a disposizione due dataset, di differenti grandezze, formati da articoli della versione inglese dell'enciclopedia.
 
-A partire da tali premesse ci siamo prefissati i seguenti quesiti:
-
+Con queste premesse ci siamo chiesti
 \begin{itemize}
-	\item quanto sono clusterizzabili gli articoli del dataset?
-	\item le categorie associate a questi articoli sono sensate?
-	\item quali sono dei metodi validi per rappresentare opportunamente i nostri dati in input?
-	\item come variano i cluster utilizzando tecniche diverse?
-	\item c'è un numero ottimale di cluster per il dataset? Quanto vale?
-	\item qual è il rapporto tra il cluster ottenuto e le categorie?
+	\item quali sono i modi di rappresentare gli articoli di Wikipedia?
+	\item quanto sono clusterizzabili gli articoli?
+	\item qual è il numero ottimale di cluster per descrivere il dataset?
+	\item quanto è stretto il legame tra le categorie e i cluster ottenuti?
 \end{itemize}
 
-Tali quesiti troveranno risposta nel seguito della trattazione, che è strutturata nel modo che segue.
-La sezione 2 illustra l'analisi preliminare effettuata sugli articoli e sulle categorie.
-Successivamente il capitolo 3 descrive le tecniche utilizzate per rappresentare il dataset.
-Il capitolo 4 tratta poi degli algoritmi di clustering applicati al dataset e delle tecniche di valutazione impiegate.
-Di seguito la sezione 5 riporta e discute i risultati ottenuti nel capitolo precedente, offrendo anche un confronto tra i metodi utilizzati.
-Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propone alcuni spunti di ricerca per futuri sviluppi.
+Tratteremo delle metodologie e dei risultati ottenuti nel seguito della trattazione, così strutturata.
 
+La sezione \ref{sec:dataset} illustra l'analisi preliminare effettuata sugli articoli e sulle categorie.
+Successivamente il capitolo \ref{sec:rappresentazione} descrive le tecniche utilizzate per rappresentare il dataset.
+Il capitolo \ref{sec:clustering} tratta poi degli algoritmi di clustering applicati al dataset e delle tecniche di valutazione impiegate.
+Di seguito la sezione \ref{sec:results} riporta e discute i risultati ottenuti nel capitolo precedente.
+Infine la sezione \ref{sec:conclusion} riassume il lavoro svolto, ciò che abbiamo ottenuto e propone alcuni spunti di ricerca per futuri sviluppi.
 
-\section{Dataset e Analisi Preliminare}
-	Ci sono stati messi a disposizione due dataset, di differenti grandezze, per effettuare questa analisi.
-	Nello specifico abbiamo utilizzato quello minore, il quale è un \emph{dump} composto da un JSON contenente centomila articoli di Wikipedia in versione inglese.
-	Per ogni articolo abbiamo a disposizione il titolo, il testo, l'id e le categorie dell'articolo.
-	In particolare le categorie sono assegnate a discrezione degli autori e dei successivi revisori di ogni voce, in quanto Wikipedia non prevede una struttura o dei vincoli particolari per l'assegnazione di queste categorie.
+\section{Dataset e Analisi Preliminare} \label{sec:dataset}
+	Tra i due dataset proposti abbiamo utilizzato \url{medium-sample.dat.bz2}. Esso è un \emph{dump} composto da un JSON contenente centomila articoli di Wikipedia.
+	
+	Per ognuno di questi articoli abbiamo a disposizione il titolo, il testo, un id e le categorie associate all'articolo. 
+	Queste ultime sono a discrezione degli autori e revisori, in quanto Wikipedia non prevede una struttura o dei vincoli particolari per l'assegnazione di queste categorie.
 
-	La nostra analisi mira a valutare la relazione semantica tra gli articoli e le loro categorie, quindi prima di effettuare l'analisi si è deciso di eliminare tutti gli articoli che non risultano essere associati a nessuna categoria. Queste pagine sono dette \emph{di disambiguazione} e quindi non sono utili per i nostri scopi.
+	La nostra analisi mira a valutare la relazione semantica tra gli articoli e le loro categorie, quindi prima di effettuare l'analisi si è deciso di eliminare tutti le voci che non sono associate a nessuna categoria. Queste pagine sono dette \emph{di disambiguazione} e quindi non sono utili per i nostri scopi.
 
 	Per quanto concerne le categorie, una prima ispezione manuale rivela che esse sono alquanto arbitrarie e spesso così specifiche da essere associate ad un articolo soltanto.
 	Esempio di ciò sono le categorie "Roads on the National Register of Historic Places in Illinois", "United Nations Security Council resolutions concerning Sudan" e "Singaporean people of Yemeni descent".
 	C'è inoltre da sottolineare come ad ogni articolo siano spesso associate più di una categoria, con una media di 1.99 categorie per ogni voce del dataset.
 
-    Un'analisi più approfondita sulla distribuzione delle categorie è riportata in figura \ref{fig:categories}.
     \begin{figure}[!htb]
 		\hspace{-4.5cm}
 			\begin{subfigure}{.5\textwidth}
@@ -143,12 +138,11 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 		\label{fig:categories}
 	\end{figure}
 
-	L'analisi effettuata rivela infatti che, sul totale di 198.609 distinte categorie presenti nel dataset, circa due terzi (precisamente 134.524) di queste sono uniche, ovvero sono associate ad un solo articolo.
+	L'analisi della distribuzione di categorie riportata in figura \ref{fig:categories} rivela che, sul totale di 198.609 distinte categorie presenti nel dataset, circa due terzi (precisamente 134.524) di queste sono uniche, ovvero sono associate ad un solo articolo.
 	Dato che queste non portano alcun contenuto informativo utile alla clusterizzazione, abbiamo provveduto ad escludere tali categorie dalle successive analisi.
 
-	Nondimeno è anche presente un numero ristretto di 158 categorie associate a 100 o più articoli, le quali sono composte per lo più da categorie del genere "1900 deaths" e "1900 births" che si ripetono variando solamente l'anno.
+	Nondimeno è anche presente un numero ristretto di 158 categorie associate a 100 o più articoli, per lo più del genere "1900 deaths" e "1900 births" che si ripetono variando solamente l'anno.
 	In tabella \ref{table:toptencategories} sono riportate a titolo di esempio le categorie con più articoli associati.
-
 
 	\begin{table}[]
 	\vspace*{0.2cm}
@@ -165,14 +159,15 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 	\end{table}
 
 
-\section{Rappresentazione del Dataset}
-	Prima di procedere con qualsiasi operazione sull'intero corpus si è deciso di preprocessare il data set eliminando le cosiddette \emph{stop words}, per la cui lista ci siamo riferiti al sito \url{http://www.ranks.nl/stopwords}.
+\section{Rappresentazione del Dataset} \label{sec:rappresentazione}
+	Prima di procedere con il clustering sul contenuto degli articoli si è deciso di preprocessare il loro testo eliminando le cosiddette \emph{stop words}, per la cui lista ci siamo riferiti al sito \url{http://www.ranks.nl/stopwords}.
+	
 	%ovvero parole come congiunzioni e preposizioni che portano un contenuto informativo sostanzialmente nullo al testo.
 
 	Questo passaggio è stato seguito dalla lemmatizzazione, al fine di raggruppare assieme forme flesse di una stessa parola: l'operazione è stata eseguita con il \emph{Lemmatizer} di Spark.
 
 	\subsection{Vettorializzazione degli articoli}
-		Per interagire con i più comuni algoritmi di clustering, ad esempio K-means, si è reso necessario trasformare gli articoli di Wikipedia in vettori.
+		Per interagire con i più comuni algoritmi di clustering, ad esempio \emph{K-means}, si è reso necessario trasformare gli articoli di Wikipedia in vettori.
 		Per fare ciò abbiamo adottato una tecnica nota in letteratura con il nome \emph{Word2Vec}. Tale strumento, ideato da Tomas Mikolov, non è altro che una rete neurale a due strati il cui scopo è quello di trasformare parole del linguaggio naturale in vettori. Nello spazio vettoriale generato, le parole semanticamente più simili saranno più vicine, mentre parole che esprimono concetti differenti risulteranno distanti.
 
 		Tale funzionalità è già implementata nella suite software di Spark, ma per sfruttarla al meglio è necessario settare alcuni parametri: tra questi uno dei più importanti è la dimensione del vettore in uscita.
@@ -184,8 +179,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 	L'algoritmo Bag of Words\cite{bagofwords} effettua la conversione degli articoli in vettori considerando le occorrenze dei termini in essi.
 	In particolare viene considerata come metrica la \textit{Term frequency-inverse document frequency} (Tf-Idf).
-
-	Si definisce la Tf-Idf relativa all'$i$-esimo termine nel $j$-esimo articolo come:
+	Questa quantità, relativa all'$i$-esimo termine nel $j$-esimo articolo, si definisce come:
 	$$ w_{i,j}=tf_{i,j}\times\log \left(\frac{N}{df_{i}} \right) $$
 	dove $tf_{i,j}$ rappresenta il numero di occorrenze di $i$ in $j$, $df_{i}$ è il numero di documenti contenenti il termine $i$, ed $N$ è il numero totale di documenti.
 
@@ -193,7 +187,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 	Pertanto il modello prodotto associa ad ogni documento un vettore di dimensione 3000, contenente gli indici TfIdf associati ad ogni articolo per tutte le parole selezionate.
 
-\section{Clustering}
+\section{Clustering} \label{sec:clustering}
 
 	\subsection{Tecniche di Clustering}
 
@@ -238,7 +232,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			Analogamente a \emph{K-means} può essere utilizzata come algoritmo di clustering non supervisionato. 
 			Ciò si può ottenere associando ad ogni articolo al topic a lui più influente, che costituisce quindi il suo contesto semantico.
 			
-			Nella tabella \ref{table:ldatopics} sono elencati i 10 termini più rilevanti per alcuni dei topic risultati dall'applicazione di LDA con $k=80$.
+			Nella tabella \ref{table:ldatopics} sono elencati i 10 termini più rilevanti per alcuni dei topic individuati da LDA con $k=80$.
 			
 			\begin{table}[!htbp]
 			\vspace*{0.2cm}
@@ -256,8 +250,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 			Nel nostro lavoro abbiamo scelto di usare 100 iterazioni per l'algoritmo in quanto oltre tale numero i miglioramenti nella qualità del clustering non sono rilevanti\cite{ldaiterations}, mentre come funzione obiettivo abbiamo scelto la log-likelihood\cite{ldaevaluation}.
 
-			La complessità computazionale di questo metodo ci ha però limitati ad effettuare gli esperimenti con un numero di topic ridotto ($k=50,\,70,\,80$), avvicindandoci però a quanto suggerito da da \emph{K-means}.
-			%TODO: valutare se metere anche altri k
+			La complessità computazionale di questo metodo non ci ha permesso però di confrontare i risultati con i clustering ottenuti con \emph{K-means}.
 
 		\subsubsection{Altri metodi}
 			La libreria \emph{mllib} contiene altre tecniche, tra cui \emph{Gaussian mixture} e \emph{Bisecting k-means}, ma esse si sono rivelate inapplicabili, la prima per l'eccessivo tempo di calcolo e la seconda perché affine al già citato \emph{K-means}, ottimizzando infatti la stessa funzione obiettivo.
@@ -326,12 +319,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 						P(\omega \cap \phi) \log \frac {P(\omega \cap \phi)} {P(\omega) P(\phi)} $$
 			$$ H(\Omega) = - \sum_{\omega \in \Omega} P(\omega) \log P(\omega), ~~~ H(\Phi) = - \sum_{\phi \in \Phi} P(\phi) \log P(\phi) $$
 
-			All'atto pratico, come valore delle probabilità sono stati impegate stime a massima verosimiglianza, per esempio
-			\begin{equation*}
-				P(\omega) = \frac
-					{ \text{numero di punti in }\omega }
-					{ \text{numero di punti totali} }
-			\end{equation*}.
+			e dove le probabilità sono state calcolate come le loro stime a massima verosimiglianza.
 
 			\smallbreak
 
@@ -345,9 +333,9 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			L'informazione mutua viene calcolata quindi per ogni clustering $C = \{c, \bar{c}\}$ e si valuta la loro somma.
 
 			\smallbreak
-			I risultati sono presentati nella sezione seguente.
+			I risultati di questa valutazione supervisionata tra clustering e \emph{ground truth} delle categorie sono presentati nella sezione seguente.
 
-\section{Risultati}
+\section{Risultati} \label{sec:results}
 
 	\subsection{Numero di cluster}
 		Il clustering \emph{K-means} risulta il più semplice e rapido da ottenere e per questo motivo abbiamo deciso di ispezionare un ampio range di valori per K.
@@ -372,7 +360,7 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 
 	Per questo motivo nelle analisi successive ci siamo concentrati su valori di K compresi tra 50 e 150.
 
-	\subsection{Confronto tra i Cluster ottenuti con Normalize Mutual Information}
+	\subsection{Confronto tra i cluster e categorie con Normalized Mutual Information} \label{sec:NMI-confronto}
 		Come si puo notare in figura \ref{fig:NMI-kmeans-categories}, l'andamento dell'informazione mutua del clustering rispetto alle categorie risulta analogo per entrambi gli approcci impiegati, descritti nella sezione \ref{sec:NMI}.
 
 		L'aumento di informazione al crescere di K ci suggerisce che aumentando il numero di partizioni il clustering si avvicina alla suddivisione indotta dalle categorie, ma che questo approssimarsi è tanto meno apprezzabile quanto più si sale con il valore di K.
@@ -414,14 +402,19 @@ Infine la sezione 6 riassume il lavoro svolto, ciò che abbiamo ottenuto e propo
 			\label{fig:silhouetteValidation}
 		\end{figure}
 
-\section{Conclusioni}
-	Le conclusioni generali dalle analisi effettuate
-	Proposte di punti da approfondire in studi futuri
-
+\section{Conclusioni} \label{sec:conclusion}
+	La nostra analisi ha mostrato come sia possibile ottenere buoni risultati e ridotti tempi di calcolo con la tecnica di vettorializzazione degli articoli \emph{Word2Vec}, rispetto alle risorse richieste da algoritmi che operino su \emph{bag-of-words}.
+	
+	La statistica di Hopkins ci ha suggerito che c'è una forte tendenza al cluster degli articoli: ciò è dimostrato dagli ottimi risultati ottenuti da \emph{K-means}, che propendono per un valore di $K$ prossimo a 100.
+	
+	Come messo in luce nel capitolo \ref{sec:dataset} e nella sezione \ref{sec:NMI-confronto}, le categorie risultano molto sparse e portano a considerare valori di $K$ maggiori di 100. La relazione tra cluster e categorie è perciò labile, ma pensiamo che essa possa essere resa più stretta con una più aggressiva selezione delle categorie, consideri solo quelle semanticamente rilevanti.	
+		
+	
 %------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
 %------------------------------------------------------------------------------
 
+\vspace{-0.5cm} % sporco trucco ingegneristico
 \begin{thebibliography}{12}
 
 \bibitem{w2vdim}
