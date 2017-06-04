@@ -19,7 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Class to compute the Hopkins statistics.
  */
-public class ClusterEvaluation {
+public class HopkinsStatistic {
 
     /**
      * @param args
