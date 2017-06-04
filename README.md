@@ -12,12 +12,12 @@ Il progetto è composto da queste cartelle
 
 Lanciare il software
 --------------------
-Per rendere più semplice la gestione delle classi e dei parametri abbiamo scritto uno 
+Per rendere più semplice la gestione delle classi e dei parametri abbiamo scritto uno
 script `python`, ovvero `make.py` che automatizzi il processo, la cui documentazione si
 ottiene con il comando `python3 make.py --help`.
 Ad esempio
 ```bash
-python make.py --class Cluster (...args for Java main...) 
+python make.py --class Cluster (...args for Java main...)
 ```
 
 Le classi lanciate si trovano nel percorso `src/main/java/it/unipd/dei/dm1617/examples/`.
@@ -32,13 +32,13 @@ I parametri sono documentati nel metodo `main` delle rispettive classi.
   - `CategoriesPreprocessing.java` conta gli articoli per categoria
   - `TfidfCategories.java` esegue un ranking tra le categorie per selezionare le più importanti
   - `TfIdf.java` costruisce il modello `bag-of-words`
-  - `Word2VecFit.java` allena sul corpus di testi il modello word2vec 
-  - `Doc2Vec.java` carica il modello word2vec e salva in `output/` il vettore 
+  - `Word2VecFit.java` allena sul corpus di testi il modello word2vec
+  - `Doc2Vec.java` carica il modello word2vec e salva in `output/` il vettore
      associato ad ogni articolo
 
 - clustering
   - `Cluster.java` esegue il clustering dei  dati in input e salva in output il modello allenato
-  
+
 - valutazione dei risultati
   - `HopkinsStatistic.java` calcola la statistica di Hopkins del dataset vettorializzato
   - `EvaluationLDA.java` ispeziona il risultato del fit di LDA
@@ -48,13 +48,8 @@ I parametri sono documentati nel metodo `main` delle rispettive classi.
 
 Script di servizio
 ------------------
-In `src/` e `results/` sono presenti script `python` per semplificare l'accesso ai file e per costruire gli 
-opportuni grafici.
+In `src/` e `results/` sono presenti script `python` per compiere analisi sui file di `output/`
+e per costruire gli opportuni grafici.
 
-
-
-
-
-
-
-
+`src/hierarchicalClustering.py` è stato un tentativo di esecuire il clustering con
+la libreria `scipy`, ma è stato abbandonato per l'enorme richiesta di RAM.

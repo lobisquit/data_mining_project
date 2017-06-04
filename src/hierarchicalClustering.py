@@ -5,7 +5,7 @@ import numpy
 import scipy.cluster.hierarchy as hcluster
 import pprint
 
-dataFile = open("output/WikiVector.csv",'r')
+dataFile = open("../output/WikiVector.csv",'r')
 
 dataMatrix = []
 
