@@ -1,55 +1,63 @@
 Data mining project, goal B
 ===========================
+README italian version can be found [here](https://github.com/lobisquit/data_mining_project/blob/04b8595987cdc18d11fc6f0282c93f96df64db09/README.md).
 
-Struttura del progetto
+Use Spark to cluster documents given their content and given Wikipedia categories.
+
+Project structure
 ----------------------
-Il progetto è composto da queste cartelle
-- `dataset` contiene i dati di input
-- `latex` contiene il file `tex` della nostra relazione
-- `output` contiene i dataset di output delle nostre elaborazioni
-- `results` contiene alcuni report in `csv` e gli script con cui sono state generate le figure
-- `src` contiene il codice dell'elaborazione
+Project is splitted into different folders.
+- `dataset` contains input dataset
+- `output` contains processing output dataset, such as intermediate computations
+  of Spark
+- `results` contains some `csv` reports used to make plots
+- `latex` contains `tex` file of our report
+- `src` contains code needed to perform computations and plot
 
-Lanciare il software
+Start software
 --------------------
-Per rendere più semplice la gestione delle classi e dei parametri abbiamo scritto uno
-script `python`, ovvero `make.py` che automatizzi il processo, la cui documentazione si
-ottiene con il comando `python3 make.py --help`.
-Ad esempio
+To make handling classes and parameter simpler, we wrote a `python` script,
+namely `make.py`. Its documentation is simply given through `python3 make.py --help`.
+
+Example usage is
 ```bash
 python make.py --class Cluster (...args for Java main...)
 ```
 
-Le classi lanciate si trovano nel percorso `src/main/java/it/unipd/dei/dm1617/examples/`.
-La descrizione dettagliata delle classi avverrà nella prossima sezione.
+Relevant classes with main Spark procedures can be found in
+`src/main/java/it/unipd/dei/dm1617/examples/`, descripted in next section.
 
-Classi che utilizzano Spark
+Spark classes
 ---------------------------
-Esse verranno divise a seconda della fase in cui sono utilizzate.
-I parametri sono documentati nel metodo `main` delle rispettive classi.
+
+They are splitted in different groups, each one providing a differe processing
+step. Parameters are retrievable in `main` method of each class.
 
 - preprocessing
-  - `CategoriesPreprocessing.java` conta gli articoli per categoria
-  - `TfidfCategories.java` esegue un ranking tra le categorie per selezionare le più importanti
-  - `TfIdf.java` costruisce il modello `bag-of-words`
-  - `Word2VecFit.java` allena sul corpus di testi il modello word2vec
-  - `Doc2Vec.java` carica il modello word2vec e salva in `output/` il vettore
-     associato ad ogni articolo
+  - `CategoriesPreprocessing.java` counts articles per category
+  - `TfidfCategories.java` ranks categories by their relevance
+  - `TfIdf.java` builds `bag-of-words` model
+  - `Word2VecFit.java` trains word2vec model using text corpus
+  - `Doc2Vec.java` loads word2vec model and writes vector corresponding to each
+     document in `output/` folder
 
 - clustering
-  - `Cluster.java` esegue il clustering dei  dati in input e salva in output il modello allenato
+  - `Cluster.java` clusters input data and outputs the trained separation model
 
-- valutazione dei risultati
-  - `HopkinsStatistic.java` calcola la statistica di Hopkins del dataset vettorializzato
-  - `EvaluationLDA.java` ispeziona il risultato del fit di LDA
-  - `NMIRankedCategories.java` calcola il punteggio NMI considerando una sola categoria per articolo
-  - `NMIOverlappingCategories.java` calcola il punteggio NMI considerando multiple categorie per articolo
-  - `SimpleSilhouetteCoefficient.java` calcola simple silhouette dato un dataset `(vettore, clusterID)`
+- result evaluation
+  - `HopkinsStatistic.java` computes Hopkins statistic on vectorized corpus
+  - `EvaluationLDA.java` inspect LDA fit output
+  - `NMIRankedCategories.java` complutes NMI score considering one category per
+    document only
+  - `NMIOverlappingCategories.java` computes NMI score cosidering multiple
+    categories per document
+  - `SimpleSilhouetteCoefficient.java` complutes simple silhouette score given a
+    `(vector, clusterID)` dataset
 
 Script di servizio
 ------------------
-In `src/` e `results/` sono presenti script `python` per compiere analisi sui file di `output/`
-e per costruire gli opportuni grafici.
+In `src/` e `results/` can be found `python` scripts that process `output/`
+files and build relevant plots.
 
-`src/hierarchicalClustering.py` è stato un tentativo di esecuire il clustering con
-la libreria `scipy`, ma è stato abbandonato per l'enorme richiesta di RAM.
+`src/hierarchicalClustering.py` tried to use `scipy` clustering library, but it
+was dropped given its RAM request.
